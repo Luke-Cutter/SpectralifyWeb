@@ -2,16 +2,15 @@
 import React from 'react';
 import { ContentBox } from '../components/common/ContentBox';
 
-
 export const LearnMorePage = ({ setActivePage }) => (
   <div>
     <section className="bg-[#FFE3E3] p-4 sm:p-6 md:p-8 border-x-4 border-b-4 border-black">
-      <h2 className="text-4xl font-bold mb-8 text-center">Meet the Team</h2>
+      <h2 className="text-4xl font-bold mb-8 text-center">Our Story</h2>
       
       <ContentBox className="mb-8 border-black">
         <h3 className="text-2xl font-bold mb-4">From Frustration to Innovation</h3>
         <p className="mb-6">
-          It all began in a dorm room at Champlain College in Burlington, Vermont. A music
+          It all began in a dorm room at Champlain College in Burlington, Vermont. Luke Cutter, a music
           enthusiast and Computer Science student found himself increasingly frustrated with Spotify's
           recommendation algorithm. Despite being one of the world's leading music platforms, they
           noticed a concerning pattern: the algorithm seemed to favor already-popular tracks, creating a
@@ -56,7 +55,7 @@ export const LearnMorePage = ({ setActivePage }) => (
               className="w-32 h-32 rounded-full mx-auto mb-4 object-cover"
             />
             <h4 className="font-bold">Luke Cutter</h4>
-            <p className="text-gray-600">Lead Creative, Cool Dude</p>
+            <p className="text-gray-600">Team Lead, Cool Dude</p>
           </div>
           <div className="text-center">
             <img 

@@ -23,7 +23,7 @@ export const Header = ({ activePage, setActivePage }) => {
       <div className="lg:hidden flex justify-center relative"> 
         <button 
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="p-2 bg-spectralify-yellow rounded-lg border-4 border-black shadow-button -translate-y-full z-20" 
+          className="p-2 mt-2 bg-spectralify-yellow rounded-lg border-4 border-black shadow-button -translate-y-full z-20" 
         >
           <div className="w-6 h-5 flex flex-col justify-between">
             <div className={`h-1 w-full bg-black transition-transform ${isMenuOpen ? 'rotate-45 translate-y-2' : ''}`} />

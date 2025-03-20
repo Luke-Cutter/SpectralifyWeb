@@ -2,8 +2,6 @@
 import React from 'react';
 import { ContentBox } from '../components/common/ContentBox';
 import { ActionButton } from '../components/common/ActionButton';
-import { AnalysisImage } from '../components/images/AnalysisImage';
-
 
 export const HomePage = ({ setActivePage }) => (
   <div>
@@ -12,21 +10,21 @@ export const HomePage = ({ setActivePage }) => (
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mb-8">
         <ContentBox>
-          <AnalysisImage type="temporal" />
-          <p className= "content-center ml-12 ">Measure of Track Durations and Tempo Distribution</p>
+          <img className="w-full h-auto" alt="Measure of Track Durations and Tempo Distribution Graph" src="/SpectralifyWeb/images/temporal_analysis.png"></img>
+          <p className= "text-center mt-10 font-bold">Measure of Track Durations and Tempo Distribution</p>
         </ContentBox>
         <ContentBox>
-          <AnalysisImage type="heatmap" />
-          <p className= "content-center">Similarity Of Musical Features in an Album</p>
+          <img className="w-full h-auto" alt="Similarity Of Musical Features in an Album Heatmap" src="/SpectralifyWeb/images/correlation_heatmap.png"></img>
+          <p className= "text-center font-bold">Similarity Of Musical Features in an Album</p>
         </ContentBox>
       </div>
 
       <ContentBox>
         <p className="text-base text-center">
-          Spectralify is an open letter to Spotify addressing music recommendation systems. Our goal is to create 
+          Spectralify is an open letter to Spotify addressing music recommendation systems. We aim to create 
           more equitable recommendation algorithms that prioritize musical discovery over popularity metrics. While current 
           recommendation systems typically analyze only 12 components of a song, Spectralify Audio, our in-house audio 
-          extraction tool, can extract more detailed metrics to enable more nuanced and informative recommendations.
+          extraction tool, extracts 142 detailed metrics from 6 vital music theory categories to enable more nuanced and informative recommendations.
         </p>
       </ContentBox>
     </section>
@@ -36,16 +34,15 @@ export const HomePage = ({ setActivePage }) => (
       
       <ContentBox className="mb-8 border-black">
         <p className="text-base text-center">
-          Spectralify uses a sample playlist that you make, extracts the audio characteristics of all of the songs, 
-          and then associates them with one another to get you the next best songs! We expand your tastes by providing 
-          a bias-free recommendation that will keep your jam going!
+          Spectralify uses a seed song of your choice. With the extracted audio characteristics from our 100,000-song dataset, we associate them with one another to make the perfect Spotify playlist. 
+          We expand your tastes by providing a bias-free recommendation to keep your jam going!
         </p>
       </ContentBox>
 
       <div className="flex items-center justify-center gap-6">
         <div className="w-16 mt-8 h-0.5 bg-black" />
-        <ActionButton onClick={() => setActivePage('get started')}>
-          Get Started!
+        <ActionButton onClick={() => setActivePage('build a playlist')}>
+          Build a Playlist!
         </ActionButton>
         <div className="w-16 mt-8 h-0.5 bg-black" />
       </div>

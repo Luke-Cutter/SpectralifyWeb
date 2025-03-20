@@ -25,7 +25,7 @@ export const Footer = ({ setActivePage }) => (
         <div className="text-center">
           <p className="text-sm mb-1">2025 Spectralify. All rights reserved.</p>
           <p className="text-sm mt-28">
-            <span className="font-bold">Built with</span> passion for equitable music discovery.
+            <span className="font-bold">Built with passion for equitable music discovery.</span> 
           </p>
         </div>
       </ContentBox>

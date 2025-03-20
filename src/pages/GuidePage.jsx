@@ -359,12 +359,6 @@ export const GuidePage = ({ setActivePage }) => {
             </p>
           </ContentBox>
         </div>
-        
-        <div className="text-center">
-          <ActionButton onClick={() => setActivePage('get started')}>
-                    Try it Out!
-                  </ActionButton>
-        </div>
       </section>
     </div>
   );
