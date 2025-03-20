@@ -6,14 +6,18 @@ export const Header = ({ activePage, setActivePage }) => {
   
   return (
     <header className="bg-spectralify-coral border-l-4 border-r-4 border-t-4 pt-8 md:pt-12 pb-0 rounded-t-xl relative border-black">
-      <div className="relative text-center mb-4 md:mb-12">
-        <h1 className="text-black text-5xl sm:text-6xl md:text-8xl font-bold absolute w-full" style={{ top: '7px', left: '-10px' }}>
+      <div className="text-center mb-4 md:mb-12">
+        <h1 
+          className="text-white text-5xl sm:text-6xl md:text-8xl font-bold tracking-widest"
+          style={{ 
+            textShadow: "-7px 0 0 #000",
+            WebkitTextStroke: "1.5px black",
+            textStroke: "1.5px black"
+           }}
+        >
           SPECTRALIFY
-        </h1>
-        <h1 className="text-white text-5xl sm:text-6xl md:text-8xl font-bold relative">
-          SPECTRALIFY
-        </h1>
-      </div>
+      </h1>
+    </div>
       
       <h2 className="text-white text-xl sm:text-2xl md:text-3xl font-bold text-center px-4 mb-14 md:mb-12">
         YOUR ONE-STOP MUSIC RECOMMENDATION PLATFORM

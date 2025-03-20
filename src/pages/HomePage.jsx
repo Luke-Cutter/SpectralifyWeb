@@ -41,7 +41,18 @@ export const HomePage = ({ setActivePage }) => (
 
       <div className="flex items-center justify-center gap-6">
         <div className="w-16 mt-8 h-0.5 bg-black" />
-        <ActionButton onClick={() => setActivePage('build a playlist')}>
+        <ActionButton 
+          onClick={() => {
+            // Set the active page
+            setActivePage('build a playlist');
+            
+            // Scroll to the top of the page smoothly
+            window.scrollTo({
+              top: 150,
+              behavior: 'smooth'
+            });
+          }}
+        >
           Build a Playlist!
         </ActionButton>
         <div className="w-16 mt-8 h-0.5 bg-black" />
