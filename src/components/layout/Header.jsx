@@ -10,9 +10,7 @@ export const Header = ({ activePage, setActivePage }) => {
         <h1 
           className="text-white text-5xl sm:text-6xl md:text-8xl font-bold tracking-widest"
           style={{ 
-            textShadow: "-7px 0 0 #000",
-            WebkitTextStroke: "1.5px black",
-            textStroke: "1.5px black"
+            textShadow: "-7px 0 0 #000"
            }}
         >
           SPECTRALIFY
