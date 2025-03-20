@@ -24,7 +24,7 @@ export const HomePage = ({ setActivePage }) => (
           Spectralify is an open letter to Spotify addressing music recommendation systems. We aim to create 
           more equitable recommendation algorithms that prioritize musical discovery over popularity metrics. While current 
           recommendation systems typically analyze only 12 components of a song, Spectralify Audio, our in-house audio 
-          extraction tool, extracts 142 detailed metrics from 6 vital music theory categories to enable more nuanced and informative recommendations.
+          extraction tool, extracts 142 detailed metrics from 13 vital metadata & music theory categories to enable more nuanced and informative recommendations.
         </p>
       </ContentBox>
     </section>
