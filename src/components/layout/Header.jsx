@@ -8,7 +8,7 @@ export const Header = ({ activePage, setActivePage }) => {
     <header className="bg-spectralify-coral border-l-4 border-r-4 border-t-4 pt-8 md:pt-12 pb-0 rounded-t-xl relative border-black">
       <div className="text-center mb-4 md:mb-12">
         <h1 
-          className="text-white text-5xl sm:text-6xl md:text-8xl font-bold tracking-widest"
+          className="text-white text-4xl sm:text-5xl md:text-7xl font-bold tracking-widest"
           style={{ 
             textShadow: "-7px 0 0 #000"
            }}
