@@ -55,7 +55,7 @@ export const LearnMorePage = ({ setActivePage }) => (
               className="w-32 h-32 rounded-full mx-auto mb-4 object-cover"
             />
             <h4 className="font-bold">Luke Cutter</h4>
-            <p className="text-gray-600">Team Lead, Cool Dude</p>
+            <p className="text-gray-600">Team Lead, Visionary</p>
           </div>
           <div className="text-center">
             <img 
