@@ -2,12 +2,13 @@
 import React from 'react';
 import { ContentBox } from '../components/common/ContentBox';
 
+
 export const LearnMorePage = ({ setActivePage }) => (
   <div>
-    <section className="bg-[#FFE3E3] p-8 border-x-4 border-b-4 border-black">
-      <h2 className="text-4xl font-bold mb-8 text-center">Learn More</h2>
+    <section className="bg-[#FFE3E3] p-4 sm:p-6 md:p-8 border-x-4 border-b-4 border-black">
+      <h2 className="text-4xl font-bold mb-8 text-center">Meet the Team</h2>
       
-      <ContentBox className="mb-8">
+      <ContentBox className="mb-8 border-black">
         <h3 className="text-2xl font-bold mb-4">From Frustration to Innovation</h3>
         <p className="mb-6">
           It all began in a dorm room at Champlain College in Burlington, Vermont. A music
@@ -37,11 +38,20 @@ export const LearnMorePage = ({ setActivePage }) => (
 
     <section className="bg-[#F9C846] p-8 border-x-4 border-black">
       <ContentBox>
-        <h3 className="text-2xl font-bold mb-4 text-center">Meet the Team</h3>
-        <div className="grid grid-cols-2 gap-8">
+        <h3 className="text-2xl font-bold mb-4 text-center">Our Incredible Team</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
+        <div className="text-center">
+            <img 
+              src="/SpectralifyWeb/images/NessCampagna.png"
+              alt="Ness Campagna" 
+              className="w-32 h-32 rounded-full mx-auto mb-4 object-cover"
+            />
+            <h4 className="font-bold">Ness Campagna</h4>
+            <p className="text-gray-600">Lead Data Analyst, Wizard</p>
+          </div>
           <div className="text-center">
             <img 
-              src="/images/LukeCutter.jpg"
+              src="/SpectralifyWeb/images/LukeCutter.png"
               alt="Luke Cutter" 
               className="w-32 h-32 rounded-full mx-auto mb-4 object-cover"
             />
@@ -50,7 +60,7 @@ export const LearnMorePage = ({ setActivePage }) => (
           </div>
           <div className="text-center">
             <img 
-              src="/images/ColeHeigis.jpg"
+              src="/SpectralifyWeb/images/ColeHeigis.jpg"
               alt="Cole Heigis" 
               className="w-32 h-32 rounded-full mx-auto mb-4 object-cover"
             />

@@ -4,12 +4,13 @@ import { ContentBox } from '../components/common/ContentBox';
 import { ActionButton } from '../components/common/ActionButton';
 import { AnalysisImage } from '../components/images/AnalysisImage';
 
+
 export const AudioPage = ({ setActivePage }) => (
   <div>
-    <section className="bg-[#FFE3E3] p-8 border-x-4 border-b-4 border-black">
+    <section className="bg-[#FFE3E3] p-4 sm:p-6 md:p-8 border-x-4 border-b-4 border-black">
       <h2 className="text-4xl font-bold mb-8 text-center">Spectralify Audio - Our Backbone</h2>
       
-      <div className="grid grid-cols-3 gap-8 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 mb-8">
         <ContentBox>
           <AnalysisImage type="rhythm" />
         </ContentBox>
@@ -21,7 +22,7 @@ export const AudioPage = ({ setActivePage }) => (
         </ContentBox>
       </div>
 
-      <ContentBox className="mb-8">
+      <ContentBox className="mb-8 border-black">
         <p className="text-base text-center mb-6">
           Spectralify Audio is an advanced audio analysis toolkit designed to deepen the
           understanding of musical composition and enhance recommendation systems. While

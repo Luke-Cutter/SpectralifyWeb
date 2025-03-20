@@ -1,4 +1,3 @@
-// File: src/components/layout/Section.jsx
 import React from 'react';
 
 export const Section = ({ 

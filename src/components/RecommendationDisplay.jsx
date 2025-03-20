@@ -124,12 +124,12 @@ export const RecommendationDisplay = () => {
                         {/* Temporary Image Suffle until API is integrated*/ }
                       <img
                           src={[
-                            "/images/no_depression.jpg",
-                            "/images/The_Speed_of_Cattle_cover.jpg",
-                            "/images/wowee.jpg",
-                            "/images/Yankee_Hotel_Foxtrot_(Front_Cover).png",
-                            "/images/evah.png",
-                            "/images/grandaddy.jpg"
+                            "/SpectralifyWeb/images/no_depression.jpg",
+                            "/SpectralifyWeb/images/The_Speed_of_Cattle_cover.jpg",
+                            "/SpectralifyWeb/images/wowee.jpg",
+                            "/SpectralifyWeb/images/Yankee_Hotel_Foxtrot_(Front_Cover).png",
+                            "/SpectralifyWeb/images/evah.png",
+                            "/SpectralifyWeb/images/grandaddy.jpg"
                           ][Math.floor(Math.random() * 6)]} 
                           alt={`${songData.find(song => song.Filename === selectedSong)?.Album} cover`}
                           className="w-full h-full object-cover"
@@ -184,12 +184,12 @@ export const RecommendationDisplay = () => {
                       {/* Temporary Image Suffle until API is integrated*/ }
                       <img
                           src={[
-                            "/images/no_depression.jpg",
-                            "/images/The_Speed_of_Cattle_cover.jpg",
-                            "/images/wowee.jpg",
-                            "/images/Yankee_Hotel_Foxtrot_(Front_Cover).png",
-                            "/images/evah.png",
-                            "/images/grandaddy.jpg"
+                            "/SpectralifyWeb/images/no_depression.jpg",
+                            "/SpectralifyWeb/images/The_Speed_of_Cattle_cover.jpg",
+                            "/SpectralifyWeb/images/wowee.jpg",
+                            "/SpectralifyWeb/images/Yankee_Hotel_Foxtrot_(Front_Cover).png",
+                            "/SpectralifyWeb/images/evah.png",
+                            "/SpectralifyWeb/images/grandaddy.jpg"
                           ][Math.floor(Math.random() * 6)]} 
                         alt={`${song.Album} cover`}
                         className="w-full h-full object-cover"

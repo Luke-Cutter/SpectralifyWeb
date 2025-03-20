@@ -3,11 +3,11 @@ import React from 'react';
 
 export const AnalysisImage = ({ type }) => {
   const imageMap = {
-    'rhythm': '/images/rhythm_analysis.png',
-    'spectral': '/images/spectral_analysis.png',
-    'energy': '/images/energy_analysis.png',
-    'temporal': '/images/temporal_analysis.png',
-    'heatmap': '/images/correlation_heatmap.png'
+    'rhythm': '/SpectralifyWeb/images/rhythm_analysis.png',
+    'spectral': '/SpectralifyWeb/images/spectral_analysis.png',
+    'energy': '/SpectralifyWeb/images/energy_analysis.png',
+    'temporal': '/SpectralifyWeb/images/temporal_analysis.png',
+    'heatmap': '/SpectralifyWeb/images/correlation_heatmap.png'
   };
 
   return (

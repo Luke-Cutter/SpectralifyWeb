@@ -5,6 +5,7 @@ import { HomePage } from './pages/HomePage';
 import { AudioPage } from './pages/AudioPage';
 import { GetStartedPage } from './pages/GetStartedPage';
 import { LearnMorePage } from './pages/LearnMorePage';
+import { GuidePage } from './pages/GuidePage';
 
 const App = () => {
   const [activePage, setActivePage] = useState('home');
@@ -23,8 +24,9 @@ const App = () => {
       <main className="border-x-4 border-black">
         {activePage === 'home' && <HomePage setActivePage={setActivePage} />}
         {activePage === 'spectralify audio' && <AudioPage />}
-        {activePage === 'get started' && <GetStartedPage />}
-        {activePage === 'learn more' && <LearnMorePage />}
+        {activePage === 'build a playlist' && <GetStartedPage />}
+        {activePage === 'meet the team' && <LearnMorePage />}
+        {activePage === 'spectralify feature guide' && <GuidePage />}
       </main>
       <Footer setActivePage={setActivePage} />
     </div>
