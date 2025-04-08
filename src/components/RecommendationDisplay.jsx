@@ -738,7 +738,7 @@ export const RecommendationDisplay = () => {
                 <h4 className="font-bold text-lg mb-2">Success!</h4>
                 <p>Your playlist "{playlistName}" has been created and saved to your Spotify account.</p>
                 <div className="mt-4 flex flex-wrap gap-3">
-                  <ActionButton onClick={() => {
+                  <ActionButton className="ml-2" sonClick={() => {
                     // Reset just the playlist creation state but keep the CSV data
                     setRecommendations([]);
                     setSeedSong('');
@@ -748,7 +748,7 @@ export const RecommendationDisplay = () => {
                   }}>
                     Create Another Playlist with Same Data
                   </ActionButton>
-                  <ActionButton onClick={startOver}>
+                  <ActionButton onClick={startOver} className="ml-4">
                     Start Over with New Data
                   </ActionButton>
                 </div>
