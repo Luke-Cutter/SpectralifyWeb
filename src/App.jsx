@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 import { HomePage } from './pages/HomePage';
@@ -6,9 +6,18 @@ import { AudioPage } from './pages/AudioPage';
 import { GetStartedPage } from './pages/GetStartedPage';
 import { LearnMorePage } from './pages/LearnMorePage';
 import { GuidePage } from './pages/GuidePage';
+import { CallbackPage } from './components/auth/CallbackPage';
 
 const App = () => {
   const [activePage, setActivePage] = useState('home');
+
+  // Check for callback URLs on load
+  useEffect(() => {
+    // If the URL contains 'callback', show the callback page
+    if (window.location.pathname.includes('/callback')) {
+      setActivePage('spotify-callback');
+    }
+  }, []);
 
   // Add this console.log to debug
   console.log('Current active page:', activePage);
@@ -20,15 +29,20 @@ const App = () => {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <Header activePage={activePage} setActivePage={setActivePage} />
+      {activePage !== 'spotify-callback' && (
+        <Header activePage={activePage} setActivePage={setActivePage} />
+      )}
       <main className="border-x-4 border-black">
         {activePage === 'home' && <HomePage setActivePage={setActivePage} />}
         {activePage === 'spectralify audio' && <AudioPage />}
         {activePage === 'build a playlist' && <GetStartedPage />}
         {activePage === 'meet the team' && <LearnMorePage />}
         {activePage === 'spectralify feature guide' && <GuidePage />}
+        {activePage === 'spotify-callback' && <CallbackPage setActivePage={setActivePage} />}
       </main>
-      <Footer setActivePage={setActivePage} />
+      {activePage !== 'spotify-callback' && (
+        <Footer setActivePage={setActivePage} />
+      )}
     </div>
   );
 };

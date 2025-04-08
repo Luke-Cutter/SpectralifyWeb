@@ -1,243 +1,704 @@
 // src/components/RecommendationDisplay.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import _ from 'lodash';
 import { ContentBox } from './common/ContentBox';
 import { ActionButton } from './common/ActionButton';
-import { generateRecommendations } from '../utils/recommendationEngine';
+import { InputField } from './form/InputField';
+import { SelectField } from './form/SelectField';
+import { SpotifyAuth } from './auth/SpotifyAuth';
+import { CSVUpload } from './upload/CSVUpload';
+import { SpotifyService } from '../services/spotifyService';
+import { 
+  generateEnhancedRecommendations,
+  findNearestSongs,
+  getSimpleSimilarSongs
+} from '../utils/enhancedRecommendationEngine';
+import { Music, Disc, Save, Loader, Search, FileSpreadsheet, SlidersHorizontal } from 'lucide-react';
 
 export const RecommendationDisplay = () => {
-  const [songData, setSongData] = useState([]);
-  const [selectedSong, setSelectedSong] = useState('');
-  const [numSongs, setNumSongs] = useState(10);
-  const [recommendations, setRecommendations] = useState(null);
-  const [error, setError] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [accessToken, setAccessToken] = useState('');
+  const [userId, setUserId] = useState('');
+  const [csvData, setCsvData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [seedSong, setSeedSong] = useState('');
+  const [playlistName, setPlaylistName] = useState('My Spectralify Playlist');
+  const [playlistDescription, setPlaylistDescription] = useState('Created with Spectralify audio analysis');
+  const [selectedFeatureGroups, setSelectedFeatureGroups] = useState(['basic', 'rhythm', 'energy']);
+  const [recommendations, setRecommendations] = useState([]);
+  const [playlistCreated, setPlaylistCreated] = useState(false);
+  const [playlistLength, setPlaylistLength] = useState(15);
+  const [songDataMap, setSongDataMap] = useState({});
+  const [allSongs, setAllSongs] = useState([]);
+  const [searchResults, setSearchResults] = useState([]);
+  const [view, setView] = useState('fileUpload'); // 'fileUpload', 'songSelector', 'recommendations', 'playlistCreator'
+  const [blendFactor, setBlendFactor] = useState(0.5); // 0 = only direct features, 1 = only ordered data
+  const fileInputRef = useRef(null);
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+  const [artistPriority, setArtistPriority] = useState(true);
+  const [artistBoost, setArtistBoost] = useState(0.15);
+  const [maxSameArtist, setMaxSameArtist] = useState(3);
+  
+  const featureGroups = [
+    { value: 'basic', label: 'Basic Features' },
+    { value: 'rhythm', label: 'Rhythm Patterns' },
+    { value: 'pitch', label: 'Pitch Analysis' },
+    { value: 'spectral', label: 'Spectral Features' },
+    { value: 'energy', label: 'Energy Distribution' },
+    { value: 'harmonic', label: 'Harmonic Content' },
+    { value: 'structure', label: 'Song Structure' }
+  ];
 
-  const handleFileUpload = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
+  const playlistLengthOptions = [
+    { value: 5, label: '5 songs' },
+    { value: 10, label: '10 songs' },
+    { value: 15, label: '15 songs' },
+    { value: 25, label: '25 songs' },
+    { value: 50, label: '50 songs' },
+    { value: 75, label: '75 songs' },
+    { value: 100, label: '100 songs' }
+  ];
 
+  useEffect(() => {
+    // Check for an access token in localStorage
+    const storedToken = localStorage.getItem('spotify_access_token');
+    if (storedToken) {
+      setAccessToken(storedToken);
+      setIsAuthenticated(true);
+      fetchUserProfile(storedToken);
+    }
+  }, []);
+
+  const [searchInput, setSearchInput] = useState('');
+
+
+  const fetchUserProfile = async (token) => {
     try {
-      const text = await file.text();
-      const rows = text.split('\n').filter(row => row.trim());
-      const headers = rows[0].split(',');
-      
-      const data = rows.slice(1).map(row => {
-        const values = row.split(',');
-        return headers.reduce((obj, header, index) => {
-          obj[header] = isNaN(values[index]) ? values[index] : parseFloat(values[index]);
-          return obj;
-        }, {});
+      const response = await fetch('https://api.spotify.com/v1/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
       
-      setSongData(data);
-      setError('');
-      setRecommendations(null);
-    } catch (err) {
-      setError('Error processing file. Please make sure it\'s a valid CSV.');
+      if (!response.ok) {
+        throw new Error('Failed to fetch user profile');
+      }
+      
+      const data = await response.json();
+      setUserId(data.id);
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      setError('Failed to fetch user profile. Please reconnect to Spotify.');
+      setIsAuthenticated(false);
+      localStorage.removeItem('spotify_access_token');
     }
   };
 
-  const handleGenerateRecommendations = () => {
-    if (!selectedSong) {
-      setError('Please select a seed song');
+  const handleAuthComplete = (token) => {
+    setAccessToken(token);
+    setIsAuthenticated(true);
+    localStorage.setItem('spotify_access_token', token);
+    fetchUserProfile(token);
+  };
+
+  const handleDataProcessed = (data) => {
+    // Create a map of song ID/track_id to full song data
+    const songMap = {};
+    const songs = [];
+    
+    data.forEach(row => {
+      if (row.track_id || row.id) {
+        const id = row.track_id || row.id;
+        const songData = {
+          id: id,
+          Title: row.Title || '',
+          Artist: row.Artist || '',
+          Album: row.Album || '',
+          ...row
+        };
+        
+        songMap[id] = songData;
+        songs.push(songData);
+      }
+    });
+    
+    setAllSongs(songs);
+    setSongDataMap(songMap);
+    setCsvData(data);
+    setView('songSelector');
+  };
+
+  const handleSeedSongSearch = (query) => {
+    if (!query || query.length < 2) {
+      setSearchResults([]);
       return;
     }
     
-    const seedSong = songData.find(song => song.Filename === selectedSong);
-    const recommendations = generateRecommendations(songData, seedSong, numSongs);
+    // Search by title or artist in the local dataset with proper type checking
+    const results = allSongs.filter(song => 
+      (song.Title && typeof song.Title === 'string' && song.Title.toLowerCase().includes(query.toLowerCase())) ||
+      (song.Artist && typeof song.Artist === 'string' && song.Artist.toLowerCase().includes(query.toLowerCase()))
+    ).slice(0, 5);
     
-    // Debug log
-    console.log('Generated recommendations:', recommendations.map(r => ({
-      title: r.Title,
-      score: r.similarityScore,
-      features: r.matchingFeatures
-    })));
-    
-    setRecommendations(recommendations);
+    setSearchResults(results);
   };
 
-  const formatFeatureName = (feature) => {
-    return feature
-      .replace(/_/g, ' ')
-      .split(' ')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+  const selectSeedSong = (song) => {
+    setSeedSong(song.id);
+    setSearchInput('');
+    setSearchResults([]);
+  };
+
+  const handleFeatureGroupChange = (e) => {
+    const value = e.target.value;
+    setSelectedFeatureGroups(prev => {
+      if (prev.includes(value)) {
+        return prev.filter(group => group !== value);
+      } else {
+        return [...prev, value];
+      }
+    });
+  };
+
+  const handlePlaylistLengthChange = (e) => {
+    setPlaylistLength(Number(e.target.value));
+  };
+
+  const handleBlendFactorChange = (e) => {
+    setBlendFactor(Number(e.target.value));
+  };
+
+  const handleCreatePlaylist = async () => {
+    if (!isAuthenticated || !recommendations.length) {
+      setError('Please authenticate with Spotify and generate recommendations first');
+      return;
+    }
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const spotifyService = new SpotifyService(accessToken);
+      
+      // Create a new playlist
+      const playlist = await spotifyService.createPlaylist(
+        userId,
+        playlistName,
+        playlistDescription
+      );
+      
+      // Get track URIs from recommendations
+      const trackUris = recommendations
+        .filter(track => track.spotifyUri)
+        .map(track => track.spotifyUri);
+      
+      if (trackUris.length === 0) {
+        throw new Error('No valid Spotify track URIs found');
+      }
+      
+      // Add tracks to the playlist
+      await spotifyService.addTracksToPlaylist(playlist.id, trackUris);
+      
+      setPlaylistCreated(true);
+      setView('playlistCreator');
+    } catch (error) {
+      console.error('Error creating playlist:', error);
+      setError(`Failed to create playlist: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGenerateRecommendations = async () => {
+    if (!seedSong || !csvData) {
+      setError('Please select a seed song and upload a CSV file');
+      return;
+    }
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const spotifyService = new SpotifyService(accessToken);
+      
+      // Create a mapping of feature names to ordered song IDs for the recommendation engine
+      const orderedData = {};
+      
+      // For each feature in the dataset, create a sorted array of song IDs
+      const features = Object.keys(csvData[0]).filter(key => 
+        !['id', 'track_id', 'Title', 'Artist', 'Album'].includes(key) && 
+        typeof csvData[0][key] === 'number'
+      );
+      
+      features.forEach(feature => {
+        const validSongs = csvData.filter(song => 
+          (song.track_id || song.id) && 
+          song[feature] !== undefined && 
+          song[feature] !== null && 
+          !isNaN(song[feature])
+        );
+        
+        const sortedSongs = _.sortBy(validSongs, song => song[feature]);
+        orderedData[feature] = sortedSongs.map(song => song.track_id || song.id);
+      });
+      
+      // Get recommendations based on seed song
+      const selectedSongData = songDataMap[seedSong];
+      if (!selectedSongData) {
+        throw new Error('Selected seed song not found in dataset');
+      }
+      
+      // Use enhanced recommendation engine
+      let recommendationList = [];
+      try {
+        console.log("Generating enhanced recommendations...");
+        
+        recommendationList = generateEnhancedRecommendations(
+          allSongs,
+          selectedSongData,
+          orderedData,
+          {
+            numRecommendations: playlistLength,
+            useFeatureGroups: true,
+            featureGroups: selectedFeatureGroups,
+            blend: blendFactor,
+            artistPriority: artistPriority,
+            artistBoost: artistBoost,
+            maxSameArtist: maxSameArtist
+          }
+        );
+        
+        console.log("Enhanced recommendations generated:", recommendationList.length);
+      } catch (error) {
+        console.warn('Using fallback recommendation algorithm:', error);
+        
+        // Fallback to simple recommendations
+        recommendationList = findNearestSongs(
+          orderedData,
+          seedSong,
+          Math.min(200, csvData.length),
+          selectedFeatureGroups
+        )
+        .map(([id, score]) => ({
+          ...songDataMap[id],
+          similarityScore: score / 100
+        }))
+        .slice(0, playlistLength);
+        
+        if (recommendationList.length === 0) {
+          // Second fallback
+          recommendationList = getSimpleSimilarSongs(
+            allSongs, 
+            selectedSongData,
+            selectedFeatureGroups,
+            playlistLength
+          );
+        }
+      }
+      
+      // Ensure we have recommendations
+      if (!recommendationList || recommendationList.length === 0) {
+        throw new Error('No recommendations could be generated');
+      }
+      
+      // Fetch additional metadata from Spotify API for each recommendation
+      const enhancedRecommendations = await Promise.all(
+        recommendationList.map(async (song) => {
+          try {
+            const trackInfo = await spotifyService.getTrackMetadata(song.id);
+            return {
+              ...song,
+              albumArt: trackInfo.album?.images[0]?.url,
+              spotifyUri: trackInfo.uri,
+              previewUrl: trackInfo.preview_url,
+              externalUrl: trackInfo.external_urls?.spotify
+            };
+          } catch (error) {
+            console.error(`Failed to get metadata for track ${song.id}:`, error);
+            return song;
+          }
+        })
+      );
+      
+      setRecommendations(enhancedRecommendations);
+      setView('recommendations');
+    } catch (error) {
+      console.error('Error generating recommendations:', error);
+      setError(`Failed to generate recommendations: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetProcess = () => {
+    setRecommendations([]);
+    setSeedSong('');
+    setPlaylistCreated(false);
+    setError(null);
+    setView('songSelector');
+  };
+  
+  const startOver = () => {
+    resetProcess();
+    setCsvData(null);
+    setAllSongs([]);
+    setSongDataMap({});
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    setView('fileUpload');
+  };
+
+  const toggleAdvancedOptions = () => {
+    setShowAdvancedOptions(!showAdvancedOptions);
   };
 
   return (
-    <div className="space-y-8">
-      {/* File Upload Section */}
-      <ContentBox>
-        <div className="space-y-6">
-          <div>
-            <label className="block mb-2 font-medium">Upload Music Analysis CSV</label>
-            <div className="flex items-center gap-4">
-              <input
-                type="file"
-                accept=".csv"
-                onChange={handleFileUpload}
-                className="w-full p-2 border-2 border-black rounded-lg"
-              />
-            </div>
-            {error && (
-              <p className="mt-2 text-red-500 text-sm">{error}</p>
-            )}
-          </div>
-
-          {songData.length > 0 && (
-            <>
-              {/* Song Selection */}
-              <div>
-                <label className="block mb-2 font-medium">Choose Your Seed Song</label>
-                <select
-                  value={selectedSong}
-                  onChange={(e) => setSelectedSong(e.target.value)}
-                  className="w-full p-2 border-2 border-black rounded-lg"
-                >
-                  <option value="">Select a song...</option>
-                  {songData.map(song => (
-                    <option key={song.Filename} value={song.Filename}>
-                      {song.Title} - {song.Artist}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Number of Recommendations */}
-              <div>
-                <label className="block mb-2 font-medium">Number of Recommendations</label>
-                <input
-                  type="number"
-                  min="1"
-                  max={songData.length - 1}
-                  value={numSongs}
-                  onChange={(e) => setNumSongs(parseInt(e.target.value))}
-                  className="w-full p-2 border-2 border-black rounded-lg"
-                />
-              </div>
-
-              {/* Selected Song Details */}
-              {selectedSong && (
-                <div className="p-4 bg-spectralify-pink rounded-lg">
-                  <div className="flex gap-6">
-                    <div className="w-48 h-48 flex-shrink-0">
-                      <div className="w-full h-full border-2 border-black rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
-                        {/* Temporary Image Suffle until API is integrated*/ }
-                      <img
-                          src={[
-                            "/SpectralifyWeb/images/no_depression.jpg",
-                            "/SpectralifyWeb/images/The_Speed_of_Cattle_cover.jpg",
-                            "/SpectralifyWeb/images/wowee.jpg",
-                            "/SpectralifyWeb/images/Yankee_Hotel_Foxtrot_(Front_Cover).png",
-                            "/SpectralifyWeb/images/evah.png",
-                            "/SpectralifyWeb/images/grandaddy.jpg"
-                          ][Math.floor(Math.random() * 6)]} 
-                          alt={`${songData.find(song => song.Filename === selectedSong)?.Album} cover`}
-                          className="w-full h-full object-cover"
-                        />
-                        {/* Temporary Image Suffle until API is integrated*/ }
-                      </div>
-                    </div>
-                    <div className="flex-grow">
-                      <h4 className="font-bold text-xl mb-2">Selected Song Details</h4>
-                      {songData.filter(song => song.Filename === selectedSong).map(song => (
-                        <div key={song.Filename} className="space-y-2">
-                          <p><span className="font-medium">Title:</span> {song.Title}</p>
-                          <p><span className="font-medium">Artist:</span> {song.Artist}</p>
-                          <p><span className="font-medium">Album:</span> {song.Album}</p>
-                          <div className="mt-4">
-                            <p className="font-medium mb-2">Key Characteristics:</p>
-                            <div className="grid grid-cols-2 gap-2 text-sm">
-                              <p><span className="font-medium">Tempo:</span> {song.Tempo_BPM.toFixed(1)} BPM</p>
-                              <p><span className="font-medium">Key:</span> {song.Estimated_Key}</p>
-                              <p><span className="font-medium">Beat Strength:</span> {song.Beat_Strength.toFixed(2)}</p>
-                              <p><span className="font-medium">Energy:</span> {song.RMS_Energy_Mean.toFixed(3)}</p>
-                            </div>
-                          </div>
+    <div className="space-y-6">
+      {!isAuthenticated ? (
+        <SpotifyAuth onAuthComplete={handleAuthComplete} />
+      ) : (
+        <>
+          {(!csvData || view === 'fileUpload') && (
+            <CSVUpload onDataProcessed={handleDataProcessed} fileInputRef={fileInputRef} />
+          )}
+          
+          {csvData && view === 'songSelector' && (
+            <ContentBox className="p-6 border-x-4 border-b-4 border-black">
+              <h3 className="text-xl font-bold mb-4 flex items-center">
+                <Music className="mr-2" />
+                Select a Seed Song
+              </h3>
+              
+              <div className="space-y-4">
+                <div className="relative">
+                  <InputField
+                    label="Search for a song by title or artist"
+                    placeholder="Enter song title or artist name"
+                    value={seedSong ? (songDataMap[seedSong]?.Title || '') : searchInput}
+                    onChange={(e) => {
+                      const inputValue = e.target.value;
+                      setSearchInput(inputValue);
+                      if (seedSong) setSeedSong(''); // Clear selected song when typing
+                      handleSeedSongSearch(inputValue);
+                    }}
+                  />
+                  
+                  {searchResults.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white shadow-lg rounded-md border border-gray-200">
+                      {searchResults.map(song => (
+                        <div 
+                          key={song.id} 
+                          className="p-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => {
+                            selectSeedSong(song);
+                            setSearchInput(''); // Clear search input when a song is selected
+                          }}
+                        >
+                          <div className="font-medium">{song.Title || 'Unknown Title'}</div>
+                          <div className="text-sm text-gray-600">{song.Artist || 'Unknown Artist'}</div>
                         </div>
                       ))}
                     </div>
+                  )}
+                </div>
+                
+                <div>
+                  <label className="block mb-2 font-medium">Select Feature Groups</label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {featureGroups.map(group => (
+                      <label key={group.value} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          value={group.value}
+                          checked={selectedFeatureGroups.includes(group.value)}
+                          onChange={handleFeatureGroupChange}
+                          className="rounded border-gray-300"
+                        />
+                        <span>{group.label}</span>
+                      </label>
+                    ))}
                   </div>
                 </div>
-              )}
-
-              <ActionButton onClick={handleGenerateRecommendations}>
-                Find Similar Songs
-              </ActionButton>
-            </>
-          )}
-        </div>
-      </ContentBox>
-
-      {/* Recommendations Display */}
-      {recommendations && recommendations.length > 0 && (
-        <ContentBox>
-          <h3 className="text-xl font-bold mb-4">Similar Songs</h3>
-          <div className="space-y-4">
-            {recommendations.map((song, index) => (
-              <div 
-                key={song.Filename} 
-                className="p-4 bg-gray-50 rounded-lg border-2 border-black"
-              >
-                <div className="flex gap-4">
-                  <div className="w-32 h-32 flex-shrink-0">
-                    <div className="w-full h-full border-2 border-black rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
-                      {/* Temporary Image Suffle until API is integrated*/ }
-                      <img
-                          src={[
-                            "/SpectralifyWeb/images/no_depression.jpg",
-                            "/SpectralifyWeb/images/The_Speed_of_Cattle_cover.jpg",
-                            "/SpectralifyWeb/images/wowee.jpg",
-                            "/SpectralifyWeb/images/Yankee_Hotel_Foxtrot_(Front_Cover).png",
-                            "/SpectralifyWeb/images/evah.png",
-                            "/SpectralifyWeb/images/grandaddy.jpg"
-                          ][Math.floor(Math.random() * 6)]} 
-                        alt={`${song.Album} cover`}
-                        className="w-full h-full object-cover"
+                
+                <SelectField
+                  label="Playlist Length"
+                  options={playlistLengthOptions}
+                  value={playlistLength}
+                  onChange={handlePlaylistLengthChange}
+                />
+                
+                <button 
+                  className="flex items-center text-sm text-gray-600 hover:text-black"
+                  onClick={toggleAdvancedOptions}
+                >
+                  <SlidersHorizontal size={16} className="mr-1" />
+                  {showAdvancedOptions ? 'Hide Advanced Options' : 'Show Advanced Options'}
+                </button>
+                
+                {showAdvancedOptions && (
+                  <div className="p-4 bg-gray-50 rounded border border-gray-200">
+                    <div className="mb-3">
+                      <label className="block text-sm font-medium mb-1">
+                        Recommendation Blend Factor: {blendFactor}
+                      </label>
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.1"
+                        value={blendFactor}
+                        onChange={handleBlendFactorChange}
+                        className="w-full"
                       />
-                      {/* Temporary Image Suffle until API is integrated*/ }
-                    </div>
-                  </div>
-                  
-                  <div className="flex-grow">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-bold text-lg">
-                          {index + 1}. {song.Title}
-                        </h4>
-                        <p className="text-sm text-gray-600">{song.Artist} - {song.Album}</p>
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>Feature-based</span>
+                        <span>Balanced</span>
+                        <span>Position-based</span>
                       </div>
-                      <span className="text-lg font-bold">
-                        {Math.round(song.similarityScore * 100)}%
-                      </span>
                     </div>
                     
-                    <div className="mt-3">
-                      <p className="font-medium text-sm mb-2">Matching Features:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {song.matchingFeatures.slice(0, 5).map(feature => (
-                          <span 
-                            key={feature.feature}
-                            className="px-3 py-1 bg-spectralify-pink rounded-full text-xs font-medium"
-                            title={`${(feature.similarity * 100).toFixed(1)}% match`}
-                          >
-                            {formatFeatureName(feature.feature)}
-                          </span>
-                        ))}
+                    {/* Artist Prioritization Settings */}
+                    <div className="mt-4 border-t pt-3">
+                      <div className="flex items-center mb-2">
+                        <input
+                          type="checkbox"
+                          id="artistPriority"
+                          checked={artistPriority}
+                          onChange={(e) => setArtistPriority(e.target.checked)}
+                          className="mr-2"
+                        />
+                        <label htmlFor="artistPriority" className="text-sm font-medium">
+                          Prioritize songs by the same artist
+                        </label>
                       </div>
+                      
+                      {artistPriority && (
+                        <>
+                          <div className="mb-3">
+                            <label className="block text-xs text-gray-600 mb-1">
+                              Artist similarity boost: {artistBoost}
+                            </label>
+                            <input
+                              type="range"
+                              min="0.05"
+                              max="0.3"
+                              step="0.05"
+                              value={artistBoost}
+                              onChange={(e) => setArtistBoost(Number(e.target.value))}
+                              className="w-full"
+                            />
+                          </div>
+                          
+                          <div className="mb-2">
+                            <label className="block text-xs text-gray-600 mb-1">
+                              Maximum songs from same artist: {maxSameArtist}
+                            </label>
+                            <input
+                              type="range"
+                              min="1"
+                              max="5"
+                              step="1"
+                              value={maxSameArtist}
+                              onChange={(e) => setMaxSameArtist(Number(e.target.value))}
+                              className="w-full"
+                            />
+                          </div>
+                        </>
+                      )}
                     </div>
-
-                    <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                      <p><span className="font-medium">Tempo:</span> {song.Tempo_BPM.toFixed(1)} BPM</p>
-                      <p><span className="font-medium">Key:</span> {song.Estimated_Key}</p>
-                      <p><span className="font-medium">Beat Strength:</span> {song.Beat_Strength.toFixed(2)}</p>
-                      <p><span className="font-medium">Energy:</span> {song.RMS_Energy_Mean.toFixed(3)}</p>
-                    </div>
+                    
+                    <p className="text-xs text-gray-600 mt-2">
+                      The blend factor controls how recommendations are calculated. A lower value emphasizes sonic features, while a higher value emphasizes how songs are positioned relative to each other across features.
+                    </p>
                   </div>
+                )}              
+                <ActionButton
+                  onClick={handleGenerateRecommendations}
+                  disabled={loading || !seedSong}
+                  className="w-full"
+                >
+                  {loading ? (
+                    <>
+                      <Loader className="animate-spin mr-2" size={18} />
+                      Finding Songs...
+                    </>
+                  ) : (
+                    'Generate Recommendations'
+                  )}
+                </ActionButton>
+                
+                {error && (
+                  <div className="p-3 bg-red-100 border border-red-300 rounded text-red-700">
+                    {error}
+                  </div>
+                )}
+              </div>
+            </ContentBox>
+          )}
+          
+          {recommendations.length > 0 && view === 'recommendations' && (
+            <ContentBox className="p-6 border-x-4 border-b-4 border-black">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold">Recommended Songs</h3>
+                <div className="text-sm">
+                  Based on: {songDataMap[seedSong]?.Title || 'Selected Song'} by {songDataMap[seedSong]?.Artist || 'Unknown'}
                 </div>
               </div>
-            ))}
-          </div>
-        </ContentBox>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {recommendations.map((song, index) => (
+                  <div key={index} className="border rounded overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                    <div className="aspect-square bg-gray-200 relative">
+                      {song.albumArt ? (
+                        <img 
+                          src={song.albumArt} 
+                          alt={`${song.Title || 'Unknown'} album art`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-300">
+                          <Disc size={48} className="text-gray-500" />
+                        </div>
+                      )}
+                      {song.Artist && seedSong && songDataMap[seedSong]?.Artist === song.Artist && (
+                        <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                          Same Artist
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <h4 className="font-bold truncate">{song.Title || `Track ${song.id}`}</h4>
+                      <p className="text-sm text-gray-600 truncate">{song.Artist || 'Unknown artist'}</p>
+                      <p className="text-xs text-gray-500 truncate">{song.Album || 'Unknown album'}</p>
+                      {typeof song.similarityScore !== 'undefined' && (
+                        <div className="mt-1 flex items-center">
+                          <div className="h-2 w-16 bg-gray-200 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-green-500"
+                              style={{ width: `${Math.min(song.similarityScore * 100, 100)}%` }}
+                            ></div>
+                          </div>
+                          <span className="ml-2 text-xs text-gray-600">
+                            {Math.round(song.similarityScore * 100)}% match
+                          </span>
+                        </div>
+                      )}
+                      {song.externalUrl && (
+                        <a 
+                          href={song.externalUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-600 hover:underline mt-1 inline-block"
+                        >
+                          Open in Spotify
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="mt-6 flex flex-wrap gap-4">
+                <ActionButton onClick={() => setView('playlistCreator')}>
+                  <Save className="mr-2" size={18} />
+                  Save as Playlist
+                </ActionButton>
+                <button 
+                  onClick={resetProcess}
+                  className="px-4 py-2 border border-black rounded hover:bg-gray-100 flex items-center"
+                >
+                  <Search className="mr-2" size={18} />
+                  Try Another Song
+                </button>
+                <button 
+                  onClick={startOver}
+                  className="px-4 py-2 border border-black rounded hover:bg-gray-100 flex items-center"
+                >
+                  <FileSpreadsheet className="mr-2" size={18} />
+                  Upload New Data
+                </button>
+              </div>
+            </ContentBox>
+          )}
+          
+          {recommendations.length > 0 && view === 'playlistCreator' && (
+            <ContentBox className="p-6 border-x-4 border-b-4 border-black">
+              <h3 className="text-xl font-bold mb-4 flex items-center">
+                <Save className="mr-2" />
+                Save to Spotify
+              </h3>
+              
+              <div className="space-y-4">
+                {playlistCreated ? (
+                  <div className="p-4 bg-green-100 border border-green-300 rounded text-green-700">
+                    <h4 className="font-bold text-lg mb-2">Success!</h4>
+                    <p>Your playlist "{playlistName}" has been created and saved to your Spotify account.</p>
+                    <div className="mt-4">
+                      <ActionButton onClick={startOver}>
+                        Create Another Playlist
+                      </ActionButton>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <InputField
+                      label="Playlist Name"
+                      placeholder="Enter a name for your playlist"
+                      value={playlistName}
+                      onChange={(e) => setPlaylistName(e.target.value)}
+                    />
+                    
+                    <InputField
+                      label="Description"
+                      placeholder="Enter a description"
+                      value={playlistDescription}
+                      onChange={(e) => setPlaylistDescription(e.target.value)}
+                    />
+                    
+                    <p className="text-sm text-gray-600">
+                      This will create a playlist with {recommendations.length} songs in your Spotify account.
+                    </p>
+                    
+                    <div className="flex flex-wrap gap-4">
+                      <ActionButton
+                        onClick={handleCreatePlaylist}
+                        disabled={loading}
+                        className="flex-1"
+                      >
+                        {loading ? (
+                          <>
+                            <Loader className="animate-spin mr-2" size={18} />
+                            Creating...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="mr-2" size={18} />
+                            Create Playlist
+                          </>
+                        )}
+                      </ActionButton>
+                      
+                      <button 
+                        onClick={() => setView('recommendations')}
+                        className="px-4 py-2 border border-black rounded hover:bg-gray-100"
+                      >
+                        Back to Recommendations
+                      </button>
+                    </div>
+                    
+                    {error && (
+                      <div className="p-3 bg-red-100 border border-red-300 rounded text-red-700">
+                        {error}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </ContentBox>
+          )}
+        </>
       )}
     </div>
   );

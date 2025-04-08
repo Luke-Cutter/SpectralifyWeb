@@ -1,7 +1,7 @@
 // src/pages/GetStartedPage.jsx
 import { ContentBox } from '../components/common/ContentBox';
 import { RecommendationDisplay } from '../components/RecommendationDisplay';
-
+import { ActionButton } from '../components/common/ActionButton';
 
 export const GetStartedPage = () => {
   return (
@@ -13,12 +13,25 @@ export const GetStartedPage = () => {
         <ContentBox className="mb-8 border-black">
           <div className="prose max-w-none">
             <h3 className="text-2xl font-bold mb-4">How It Works</h3>
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="grid md:grid-cols-3 gap-8">
               <div>
-                <h4 className="text-xl font-bold mb-2">1. Upload Your Data</h4>
+                <h4 className="text-xl font-bold mb-2">1. Connect to Spotify</h4>
                 <p className="text-gray-700">
                   Start by uploading your music analysis CSV file containing detailed 
                   audio characteristics like spectral analysis, rhythm patterns, and harmonic content.
+                </p>
+              </div>
+              <div>
+                <h4 className="text-xl font-bold mb-2">2. Upload your Analysis CSV</h4>
+                <p className="text-gray-700">
+                  Drop your CSV from Spectralify Audio into the upload field. If you do not have one, get one here: 
+                  <div className="text-center">
+                          <ActionButton 
+                            onClick={() => window.open('https://github.com/Luke-Cutter/Spectralify', '_blank')}
+                          >
+                            Use Our Pre-made CSV!
+                          </ActionButton>
+                        </div>
                 </p>
               </div>
               <div>
