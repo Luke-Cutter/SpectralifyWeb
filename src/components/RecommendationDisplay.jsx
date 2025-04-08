@@ -600,25 +600,25 @@ export const RecommendationDisplay = () => {
                 ))}
               </div>
               
-              <div className="mt-6 flex flex-wrap gap-4">
+              <div className="px-4 py-2 mt-6 flex flex-wrap gap-4">
                 <ActionButton onClick={() => setView('playlistCreator')}>
                   <Save className="mr-2" size={18} />
-                  Save as Playlist
+                  Save Playlist
                 </ActionButton>
-                <button 
+                <ActionButton 
                   onClick={resetProcess}
-                  className="px-4 py-2 border border-black rounded hover:bg-gray-100 flex items-center"
+                  className="px-4 py-2 flex items-center"
                 >
                   <Search className="mr-2" size={18} />
                   Try Another Song
-                </button>
-                <button 
+                </ActionButton>
+                <ActionButton 
                   onClick={startOver}
-                  className="px-4 py-2 border border-black rounded hover:bg-gray-100 flex items-center"
+                  className="px-4 py-2 flex items-center"
                 >
                   <FileSpreadsheet className="mr-2" size={18} />
                   Upload New Data
-                </button>
+                </ActionButton>
               </div>
             </ContentBox>
           )}

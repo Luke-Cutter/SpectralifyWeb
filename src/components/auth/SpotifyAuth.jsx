@@ -8,23 +8,30 @@ export const SpotifyAuth = ({ onAuthComplete }) => {
   const [tokenInfo, setTokenInfo] = useState(null);
   const [error, setError] = useState(null);
 
-  // Your actual Client ID from the Spotify Dashboard
+  // Client ID from the Spotify Dashboard
   const spotifyClientId = '4b8fd01dc4004343b120d56b36876835';
   
-  // Use the exact redirect URIs you've registered
+  // Redirect URIs registered
   const isProduction = window.location.hostname === 'luke-cutter.github.io';
   const redirectUri = isProduction 
     ? 'https://luke-cutter.github.io/SpectralifyWeb/callback'
     : 'http://localhost:3001/SpectralifyWeb/callback';
 
-  // Check for token on component mount
+  // IMPORTANT: Process the hash immediately on load, before any routing can clear it
   useEffect(() => {
-    checkForSpotifyToken();
+    // Process URL hash if present (first priority)
+    if (window.location.hash) {
+      handleAuthCallback();
+    }
+    // Then check for cached token
+    else {
+      checkForCachedToken();
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Function to check if we already have a token in localStorage
-  const checkForSpotifyToken = () => {
+  const checkForCachedToken = () => {
     const token = localStorage.getItem('spotify_access_token');
     const expiry = localStorage.getItem('spotify_token_expiry');
     
@@ -44,49 +51,57 @@ export const SpotifyAuth = ({ onAuthComplete }) => {
         localStorage.removeItem('spotify_token_expiry');
       }
     }
-    
-    // Check if we have a token in the URL (just came back from auth)
-    if (window.location.hash) {
-      handleAuthCallback();
-    }
   };
 
   // Handle the callback from Spotify auth
   const handleAuthCallback = () => {
-    const hash = window.location.hash.substring(1);
-    const params = new URLSearchParams(hash);
-    const accessToken = params.get('access_token');
-    const expiresIn = params.get('expires_in');
-    const error = params.get('error');
-    
-    if (error) {
-      setError(`Authorization error: ${error}`);
-      return;
+    try {
+      const hash = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
+      const accessToken = params.get('access_token');
+      const expiresIn = params.get('expires_in');
+      const error = params.get('error');
+      
+      // Log for debugging
+      console.log('Auth callback received:', { 
+        hasAccessToken: !!accessToken,
+        expiresIn, 
+        error 
+      });
+      
+      if (error) {
+        setError(`Authorization error: ${error}`);
+        return;
+      }
+      
+      if (!accessToken) {
+        setError('No access token received from Spotify');
+        return;
+      }
+      
+      // Store token in localStorage
+      localStorage.setItem('spotify_access_token', accessToken);
+      
+      // Calculate and store expiry time
+      const expiryTime = Date.now() + (parseInt(expiresIn) * 1000);
+      localStorage.setItem('spotify_token_expiry', expiryTime.toString());
+      
+      // Update state
+      setIsAuthenticated(true);
+      setTokenInfo({
+        accessToken,
+        expiresAt: new Date(expiryTime).toLocaleTimeString()
+      });
+      
+      // Clear the hash from URL for security
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      // Notify parent component
+      onAuthComplete(accessToken);
+    } catch (err) {
+      console.error('Error processing auth callback:', err);
+      setError(`Failed to process authentication: ${err.message}`);
     }
-    
-    if (!accessToken) {
-      return;
-    }
-    
-    // Store token in localStorage
-    localStorage.setItem('spotify_access_token', accessToken);
-    
-    // Calculate and store expiry time
-    const expiryTime = Date.now() + (parseInt(expiresIn) * 1000);
-    localStorage.setItem('spotify_token_expiry', expiryTime.toString());
-    
-    // Update state
-    setIsAuthenticated(true);
-    setTokenInfo({
-      accessToken,
-      expiresAt: new Date(expiryTime).toLocaleTimeString()
-    });
-    
-    // Clear the hash from URL for security
-    window.history.replaceState({}, document.title, window.location.pathname);
-    
-    // Notify parent component
-    onAuthComplete(accessToken);
   };
 
   // Start the auth flow
@@ -108,7 +123,7 @@ export const SpotifyAuth = ({ onAuthComplete }) => {
       '&scope=' + encodeURIComponent(scopes.join(' ')) +
       '&show_dialog=true';
     
-    // Redirect to Spotify auth page (not opening in new window)
+    // Redirect to Spotify auth page
     window.location.href = authUrl;
   };
 
@@ -175,6 +190,14 @@ export const SpotifyAuth = ({ onAuthComplete }) => {
               <li>Authorize this app to access your Spotify data</li>
               <li>You'll be redirected back to this app automatically</li>
             </ol>
+          </div>
+          
+          {/* Debug section - remove in production */}
+          <div className="mt-4 p-3 bg-gray-100 border border-gray-300 rounded text-xs text-gray-700">
+            <p className="font-bold">Debug Info:</p>
+            <p>Current URL: {window.location.href}</p>
+            <p>Has Hash: {window.location.hash ? 'Yes' : 'No'}</p>
+            <p>Redirect URI: {redirectUri}</p>
           </div>
         </div>
       )}
