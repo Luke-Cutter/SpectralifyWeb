@@ -16,7 +16,7 @@ export const SpotifyAuth = ({ onAuthComplete }) => {
   // Redirect URIs based on environment
   const isProduction = window.location.hostname.includes('github.io');
   const redirectUri = isProduction 
-    ? `${window.location.origin}${window.location.pathname}`
+    ? `https://luke-cutter.github.io/SpectralifyWeb`
     : 'http://localhost:3000/SpectralifyWeb';
 
   useEffect(() => {
