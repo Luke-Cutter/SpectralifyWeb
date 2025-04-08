@@ -17,8 +17,7 @@ export const GetStartedPage = () => {
               <div>
                 <h4 className="text-xl font-bold mb-2">1. Connect to Spotify</h4>
                 <p className="text-gray-700">
-                  Start by uploading your music analysis CSV file containing detailed 
-                  audio characteristics like spectral analysis, rhythm patterns, and harmonic content.
+                  Start by connecting to Spotify below. When it redirects, go back to the Build A Playlist Page and build away!
                 </p>
               </div>
               <div>
@@ -27,7 +26,7 @@ export const GetStartedPage = () => {
                   Drop your CSV from Spectralify Audio into the upload field. If you do not have one, get one here: 
                   <div className="text-center">
                           <ActionButton 
-                            onClick={() => window.open('https://github.com/Luke-Cutter/Spectralify', '_blank')}
+                            onClick={() => window.open('https://drive.google.com/file/d/11yblXzIbKuY8gey5Jt-9sYflqWjZzgmi/view?usp=sharing', '_blank')}
                           >
                             Use Our Pre-made CSV!
                           </ActionButton>
