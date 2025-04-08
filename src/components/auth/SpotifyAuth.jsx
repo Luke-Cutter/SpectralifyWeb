@@ -191,14 +191,6 @@ export const SpotifyAuth = ({ onAuthComplete }) => {
               <li>You'll be redirected back to this app automatically</li>
             </ol>
           </div>
-          
-          {/* Debug section - remove in production */}
-          <div className="mt-4 p-3 bg-gray-100 border border-gray-300 rounded text-xs text-gray-700">
-            <p className="font-bold">Debug Info:</p>
-            <p>Current URL: {window.location.href}</p>
-            <p>Has Hash: {window.location.hash ? 'Yes' : 'No'}</p>
-            <p>Redirect URI: {redirectUri}</p>
-          </div>
         </div>
       )}
     </ContentBox>
