@@ -15,7 +15,7 @@ export const SpotifyAuth = ({ onAuthComplete }) => {
   const isProduction = window.location.hostname === 'luke-cutter.github.io';
   const redirectUri = isProduction 
     ? 'https://luke-cutter.github.io/SpectralifyWeb'
-    : 'http://localhost:3001/SpectralifyWeb/callback';
+    : 'http://localhost:3000/SpectralifyWeb';
 
   // IMPORTANT: Process the hash immediately on load, before any routing can clear it
   useEffect(() => {

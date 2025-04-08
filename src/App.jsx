@@ -6,7 +6,6 @@ import { AudioPage } from './pages/AudioPage';
 import { GetStartedPage } from './pages/GetStartedPage';
 import { LearnMorePage } from './pages/LearnMorePage';
 import { GuidePage } from './pages/GuidePage';
-import { CallbackPage } from './components/auth/CallbackPage';
 
 const App = () => {
   const [activePage, setActivePage] = useState('home');
@@ -38,11 +37,7 @@ const App = () => {
         {activePage === 'build a playlist' && <GetStartedPage />}
         {activePage === 'meet the team' && <LearnMorePage />}
         {activePage === 'spectralify feature guide' && <GuidePage />}
-        {activePage === 'spotify-callback' && <CallbackPage setActivePage={setActivePage} />}
       </main>
-      {activePage !== 'spotify-callback' && (
-        <Footer setActivePage={setActivePage} />
-      )}
     </div>
   );
 };

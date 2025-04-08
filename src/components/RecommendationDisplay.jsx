@@ -404,7 +404,7 @@ export const RecommendationDisplay = () => {
   return (
     <div className="space-y-6">
       <ContentBox className="p-6 border-x-4 border-b-4 border-black">
-        <h3 className="text-2xl font-bold mb-4">Build Your Perfect Playlist</h3>
+        <h3 className="text-2xl font-bold mb-4">Steps to build Your Perfect Playlist</h3>
         <StepIndicator steps={steps} currentStep={getCurrentStep()} />
         
         {/* Step 1: Authenticate with Spotify */}
