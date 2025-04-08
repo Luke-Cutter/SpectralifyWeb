@@ -450,7 +450,7 @@ export const RecommendationDisplay = () => {
             <p className="text-gray-700 mb-4">
               Upload your CSV from Spectralify Audio. If you don't have one yet, you can use our pre-made CSV:
             </p>
-            <div className="mb-4 text-center">
+            <div className="mb-8 text-center">
               <ActionButton 
                 onClick={() => window.open('https://drive.google.com/file/d/11yblXzIbKuY8gey5Jt-9sYflqWjZzgmi/view?usp=sharing', '_blank')}
               >
@@ -616,7 +616,7 @@ export const RecommendationDisplay = () => {
               <ActionButton
                 onClick={handleGenerateRecommendations}
                 disabled={loading || !seedSong}
-                className="w-full"
+                className="w-5/6 mx-auto flex items-center justify-center text-center"
               >
                 {loading ? (
                   <>
