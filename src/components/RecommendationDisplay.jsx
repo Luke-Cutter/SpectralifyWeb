@@ -137,7 +137,7 @@ export const RecommendationDisplay = () => {
   ];
 
   const combinationMethodOptions = [
-    { value: 'average', label: 'Average (Balanced)' },
+    { value: 'average', label: 'Average (Balanced - Default)' },
     { value: 'minimum', label: 'Minimum (Conservative)' },
     { value: 'geometric', label: 'Geometric (Progressive)' }
   ];
@@ -665,24 +665,6 @@ export const RecommendationDisplay = () => {
                 </div>
               )}
               
-              <div>
-                <label className="block mb-2 font-medium">Select Feature Groups (Keep All Unchecked to Weigh All Features Evenly)</label>
-                <div className="grid mt-4 mb-4 grid-cols-2 md:grid-cols-3 gap-3">
-                  {featureGroups.map(group => (
-                    <label key={group.value} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        value={group.value}
-                        checked={selectedFeatureGroups.includes(group.value)}
-                        onChange={handleFeatureGroupChange}
-                        className="rounded border-gray-300"
-                      />
-                      <span>{group.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-              
               <SelectField
                 label="Playlist Length"
                 options={playlistLengthOptions}
@@ -701,6 +683,23 @@ export const RecommendationDisplay = () => {
               
               {showAdvancedOptions && (
                 <div className="p-4 bg-gray-50 rounded border border-gray-200">
+                  <div>
+                    <label className="block mb-2 font-medium">Select Feature Groups (Keep All Unchecked to Weigh All Features Evenly)</label>
+                    <div className="grid mt-4 mb-4 grid-cols-2 md:grid-cols-3 gap-3">
+                      {featureGroups.map(group => (
+                        <label key={group.value} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            value={group.value}
+                            checked={selectedFeatureGroups.includes(group.value)}
+                            onChange={handleFeatureGroupChange}
+                            className="rounded border-gray-300"
+                          />
+                          <span>{group.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
                   <div className="mb-3">
                     <label className="block text-sm font-medium mb-1">
                       Recommendation Blend Factor: {blendFactor}
