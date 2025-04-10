@@ -14,8 +14,8 @@ export const HomePage = ({ setActivePage }) => (
           <p className= "text-center mt-10 font-bold">Measure of Track Durations and Tempo Distribution</p>
         </ContentBox>
         <ContentBox>
-          <img className="w-full h-auto" alt="Similarity Of Musical Features in an Album Heatmap" src="/SpectralifyWeb/images/correlation_heatmap.png"></img>
-          <p className= "text-center font-bold">Similarity Of Musical Features in an Album</p>
+          <img className="w-full h-auto" alt="Correlation Of Musical Features in an Album Heatmap" src="/SpectralifyWeb/images/correlation_heatmap.png"></img>
+          <p className= "text-center font-bold">Correlation Of Musical Features in an Album</p>
         </ContentBox>
       </div>
 

@@ -16,7 +16,7 @@ import {
   getSimpleSimilarSongs,
   getMultiSeedSimilarSongs
 } from '../utils/enhancedRecommendationEngine';
-import { Music, CheckCircle, Circle, Disc, Save, Loader, Search, FileSpreadsheet, SlidersHorizontal, Plus, Trash2, Info } from 'lucide-react';
+import { Music, CheckCircle, Circle, Disc, Save, Loader, Search, FileSpreadsheet, SlidersHorizontal, Trash2} from 'lucide-react';
 
 const StepIndicator = ({ steps, currentStep }) => {
   return (
@@ -105,7 +105,7 @@ export const RecommendationDisplay = () => {
   const [searchInput, setSearchInput] = useState('');
   
   const steps = [
-    { description: 'Authenticate with Spotify to access your account' },
+    { description: 'Authenticate with Spotify to access your account. Not Seeing Album covers? Get verified!' },
     { description: 'Upload your audio analysis CSV file' },
     { description: 'Select seed songs and customize your playlist' }
   ];
@@ -508,6 +508,15 @@ export const RecommendationDisplay = () => {
     }
   };
 
+  const handleDisconnect = () => {
+    setIsAuthenticated(false);
+    setAccessToken('');
+    setUserId('');
+    localStorage.removeItem('spotify_access_token');
+    localStorage.removeItem('spotify_token_expiry');
+    setView('fileUpload');
+  };
+
   const resetProcess = () => {
     setRecommendations([]);
     setSeedSongs([]);
@@ -543,7 +552,23 @@ export const RecommendationDisplay = () => {
           <p className="text-gray-700 mb-4">
             Start by connecting to Spotify. This allows us to generate personalized playlists based on your preferences.
           </p>
-          <SpotifyAuth onAuthComplete={handleAuthComplete} />
+          <SpotifyAuth onAuthComplete={handleAuthComplete} onDisconnect={handleDisconnect} />
+          {isAuthenticated && (
+            <div className="mt-4 p-3 bg-yellow-100 border border-yellow-300 rounded-md">
+              <p className="text-amber-800 font-medium flex items-center">
+                <span className="mr-2">⚠️</span> 
+                Your Spotify account needs manual verification to unlock all features. Missing album covers or can't save playlists? Click below to email Luke with the email address you signed up to Spotify with.
+              </p>
+              <div className="mt-3 text-center">s
+                <ActionButton
+                  className="mx-auto flex items-center"
+                  onClick={() => window.open('mailto:cutterluke701@gmail.com?subject=Spectralify Verification Request&body=Please verify me! I would love to use Spectralify. My Spotify account\'s email is: [Change me!]')}
+                >
+                  Request Verification
+                </ActionButton>
+              </div>
+            </div>
+          )}
         </div>
         
         {/* Step 2: Upload CSV - Show this ONLY when authenticated */}

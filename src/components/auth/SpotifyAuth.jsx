@@ -4,7 +4,7 @@ import { ContentBox } from '../common/ContentBox';
 import { ActionButton } from '../common/ActionButton';
 import { CheckCircle, AlertCircle } from 'lucide-react';
 
-export const SpotifyAuth = ({ onAuthComplete }) => {
+export const SpotifyAuth = ({ onAuthComplete, onDisconnect }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [tokenInfo, setTokenInfo] = useState(null);
   const [error, setError] = useState(null);
@@ -318,6 +318,9 @@ export const SpotifyAuth = ({ onAuthComplete }) => {
     setIsAuthenticated(false);
     setTokenInfo(null);
     setError(null);
+    if (onDisconnect) {
+      onDisconnect();
+    }
   };
 
   return (
@@ -367,7 +370,7 @@ export const SpotifyAuth = ({ onAuthComplete }) => {
           
           <ActionButton 
             onClick={initiateSpotifyAuth}
-            className="w-3/4 mx-auto ml-5 flex flex-col items-center"
+            className="w-3/4 mx-auto flex flex-col items-center"
             disabled={isProcessing}
           >
             Authorize with Spotify

@@ -234,7 +234,7 @@ export const generateMultiSeedRecommendations = (songs, seedSongs, numRecommenda
   const {
     combinationMethod = 'average', // 'average', 'minimum', 'geometric'
     scoreThreshold = 0.0,          // Minimum score threshold (0-1)
-    normalizeScores = true,        // Whether to normalize scores across seeds
+    // normalizeScores = true,        // Whether to normalize scores across seeds
     weightByDistance = false,      // Whether to give more weight to closer songs
   } = options;
 
