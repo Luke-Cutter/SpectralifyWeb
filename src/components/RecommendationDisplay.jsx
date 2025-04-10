@@ -557,7 +557,7 @@ export const RecommendationDisplay = () => {
             <div className="mt-4 p-3 bg-yellow-100 border border-yellow-300 rounded-md">
               <p className="text-amber-800 font-medium flex items-center">
                 <span className="mr-2">⚠️</span> 
-                Your Spotify account needs manual verification to unlock all features. Missing album covers or can't save playlists? Click below to email Luke with the email address you signed up to Spotify with.
+                Missing album covers or can't save playlists? Your Spotify account needs manual verification to unlock all features. Click below to email Luke with the email address you signed up to Spotify with.
               </p>
               <div className="mt-3 text-center">
                 <ActionButton
