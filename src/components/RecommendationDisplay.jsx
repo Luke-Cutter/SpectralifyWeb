@@ -559,7 +559,7 @@ export const RecommendationDisplay = () => {
                 <span className="mr-2">⚠️</span> 
                 Your Spotify account needs manual verification to unlock all features. Missing album covers or can't save playlists? Click below to email Luke with the email address you signed up to Spotify with.
               </p>
-              <div className="mt-3 text-center">s
+              <div className="mt-3 text-center">
                 <ActionButton
                   className="mx-auto flex items-center"
                   onClick={() => window.open('mailto:cutterluke701@gmail.com?subject=Spectralify Verification Request&body=Please verify me! I would love to use Spectralify. My Spotify account\'s email is: [Change me!]')}
