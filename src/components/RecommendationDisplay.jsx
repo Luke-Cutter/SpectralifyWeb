@@ -10,10 +10,13 @@ import { CSVUpload } from './upload/CSVUpload';
 import { SpotifyService } from '../services/spotifyService';
 import { 
   generateEnhancedRecommendations,
+  generateMultiSeedEnhancedRecommendations,
   findNearestSongs,
-  getSimpleSimilarSongs
+  findNearestMultiSeedSongs,
+  getSimpleSimilarSongs,
+  getMultiSeedSimilarSongs
 } from '../utils/enhancedRecommendationEngine';
-import { Music, CheckCircle, Circle, Disc, Save, Loader, Search, FileSpreadsheet, SlidersHorizontal } from 'lucide-react';
+import { Music, CheckCircle, Circle, Disc, Save, Loader, Search, FileSpreadsheet, SlidersHorizontal, Plus, Trash2, Info } from 'lucide-react';
 
 const StepIndicator = ({ steps, currentStep }) => {
   return (
@@ -50,6 +53,30 @@ const StepIndicator = ({ steps, currentStep }) => {
   );
 };
 
+// Component to display an individual seed song
+const SeedSongItem = ({ song, onRemove }) => {
+  return (
+    <div className="flex items-center justify-between p-3 border rounded-lg mb-2 bg-blue-50">
+      <div className="flex items-center">
+        <div className="w-10 h-10 bg-blue-200 rounded-full flex items-center justify-center mr-3">
+          <Music size={16} />
+        </div>
+        <div>
+          <div className="font-medium">{song.Title || 'Unknown Song'}</div>
+          <div className="text-sm text-gray-600">{song.Artist || 'Unknown Artist'}</div>
+        </div>
+      </div>
+      <button 
+        onClick={onRemove} 
+        className="text-gray-500 hover:text-red-500"
+        title="Remove song"
+      >
+        <Trash2 size={16} />
+      </button>
+    </div>
+  );
+};
+
 export const RecommendationDisplay = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [accessToken, setAccessToken] = useState('');
@@ -57,7 +84,7 @@ export const RecommendationDisplay = () => {
   const [csvData, setCsvData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [seedSong, setSeedSong] = useState('');
+  const [seedSongs, setSeedSongs] = useState([]);
   const [playlistName, setPlaylistName] = useState('My Spectralify Playlist');
   const [playlistDescription, setPlaylistDescription] = useState('Created with Spectralify audio analysis');
   const [selectedFeatureGroups, setSelectedFeatureGroups] = useState([]);
@@ -73,12 +100,14 @@ export const RecommendationDisplay = () => {
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
   const [artistPriority, setArtistPriority] = useState(true);
   const [artistBoost, setArtistBoost] = useState(0.15);
-  const [maxSameArtist, setMaxSameArtist] = useState(3);
+  const [maxSameArtist, setMaxSameArtist] = useState(5);
+  const [combinationMethod, setCombinationMethod] = useState('average');
+  const [searchInput, setSearchInput] = useState('');
   
   const steps = [
     { description: 'Authenticate with Spotify to access your account' },
     { description: 'Upload your audio analysis CSV file' },
-    { description: 'Select a seed song and customize your playlist' }
+    { description: 'Select seed songs and customize your playlist' }
   ];
   
   const getCurrentStep = () => {
@@ -107,6 +136,12 @@ export const RecommendationDisplay = () => {
     { value: 100, label: '100 songs' }
   ];
 
+  const combinationMethodOptions = [
+    { value: 'average', label: 'Average (Balanced)' },
+    { value: 'minimum', label: 'Minimum (Conservative)' },
+    { value: 'geometric', label: 'Geometric (Progressive)' }
+  ];
+
   useEffect(() => {
     // Check for an access token in localStorage
     const storedToken = localStorage.getItem('spotify_access_token');
@@ -116,9 +151,6 @@ export const RecommendationDisplay = () => {
       fetchUserProfile(storedToken);
     }
   }, []);
-
-  const [searchInput, setSearchInput] = useState('');
-
 
   const fetchUserProfile = async (token) => {
     try {
@@ -218,10 +250,28 @@ export const RecommendationDisplay = () => {
     setSearchResults(results);
   };
 
-  const selectSeedSong = (song) => {
-    setSeedSong(song.id);
+  const addSeedSong = (song) => {
+    // Check if this song is already in the seed songs
+    const songId = song.id || song.track_id;
+    const isDuplicate = seedSongs.some(seedSong => {
+      const seedId = seedSong.id || seedSong.track_id;
+      return seedId === songId;
+    });
+
+    if (!isDuplicate) {
+      setSeedSongs(prevSongs => [...prevSongs, song]);
+    }
+    
     setSearchInput('');
     setSearchResults([]);
+  };
+
+  const removeSeedSong = (index) => {
+    setSeedSongs(prevSongs => {
+      const newSongs = [...prevSongs];
+      newSongs.splice(index, 1);
+      return newSongs;
+    });
   };
 
   const handleFeatureGroupChange = (e) => {
@@ -241,6 +291,10 @@ export const RecommendationDisplay = () => {
 
   const handleBlendFactorChange = (e) => {
     setBlendFactor(Number(e.target.value));
+  };
+
+  const handleCombinationMethodChange = (e) => {
+    setCombinationMethod(e.target.value);
   };
 
   const handleCreatePlaylist = async () => {
@@ -285,8 +339,8 @@ export const RecommendationDisplay = () => {
   };
 
   const handleGenerateRecommendations = async () => {
-    if (!seedSong || !csvData) {
-      setError('Please select a seed song');
+    if (seedSongs.length === 0 || !csvData) {
+      setError('Please select at least one seed song');
       return;
     }
     
@@ -317,57 +371,106 @@ export const RecommendationDisplay = () => {
         orderedData[feature] = sortedSongs.map(song => song.track_id || song.id);
       });
       
-      // Get recommendations based on seed song
-      const selectedSongData = songDataMap[seedSong];
-      if (!selectedSongData) {
-        throw new Error('Selected seed song not found in dataset');
-      }
-      
-      // Use enhanced recommendation engine
+      // Get recommendations based on seed songs
       let recommendationList = [];
+      
       try {
         console.log("Generating enhanced recommendations...");
         
-        recommendationList = generateEnhancedRecommendations(
-          allSongs,
-          selectedSongData,
-          orderedData,
-          {
-            numRecommendations: playlistLength,
-            useFeatureGroups: true,
-            featureGroups: selectedFeatureGroups,
-            blend: blendFactor,
-            artistPriority: artistPriority,
-            artistBoost: artistBoost,
-            maxSameArtist: maxSameArtist
-          }
-        );
+        if (seedSongs.length === 1) {
+          // Single seed song case - use the original enhanced recommendations
+          const selectedSongData = seedSongs[0];
+          
+          recommendationList = generateEnhancedRecommendations(
+            allSongs,
+            selectedSongData,
+            orderedData,
+            {
+              numRecommendations: playlistLength,
+              useFeatureGroups: true,
+              featureGroups: selectedFeatureGroups,
+              blend: blendFactor,
+              artistPriority: artistPriority,
+              artistBoost: artistBoost,
+              maxSameArtist: maxSameArtist
+            }
+          );
+        } else {
+          // Multiple seed songs case - use the new multi-seed recommendations
+          recommendationList = generateMultiSeedEnhancedRecommendations(
+            allSongs,
+            seedSongs,
+            orderedData,
+            {
+              numRecommendations: playlistLength,
+              useFeatureGroups: true,
+              featureGroups: selectedFeatureGroups,
+              blend: blendFactor,
+              artistPriority: artistPriority,
+              artistBoost: artistBoost,
+              maxSameArtist: maxSameArtist,
+              combinationMethod: combinationMethod
+            }
+          );
+        }
         
         console.log("Enhanced recommendations generated:", recommendationList.length);
       } catch (error) {
         console.warn('Using fallback recommendation algorithm:', error);
         
-        // Fallback to simple recommendations
-        recommendationList = findNearestSongs(
-          orderedData,
-          seedSong,
-          Math.min(200, csvData.length),
-          selectedFeatureGroups
-        )
-        .map(([id, score]) => ({
-          ...songDataMap[id],
-          similarityScore: score / 100
-        }))
-        .slice(0, playlistLength);
-        
-        if (recommendationList.length === 0) {
-          // Second fallback
-          recommendationList = getSimpleSimilarSongs(
-            allSongs, 
-            selectedSongData,
+        // Different fallback logic depending on number of seed songs
+        if (seedSongs.length === 1) {
+          const seedSongId = seedSongs[0].id || seedSongs[0].track_id;
+          
+          // Fallback to simple recommendations for single seed
+          recommendationList = findNearestSongs(
+            orderedData,
+            seedSongId,
+            Math.min(200, csvData.length),
+            selectedFeatureGroups
+          )
+          .map(([id, score]) => ({
+            ...songDataMap[id],
+            similarityScore: score / 100
+          }))
+          .slice(0, playlistLength);
+          
+          if (recommendationList.length === 0) {
+            // Second fallback
+            recommendationList = getSimpleSimilarSongs(
+              allSongs, 
+              seedSongs[0],
+              selectedFeatureGroups,
+              playlistLength
+            );
+          }
+        } else {
+          // Multi-seed fallback
+          const seedSongIds = seedSongs.map(song => song.id || song.track_id);
+          
+          // First try ordered-data based multi-seed recommendations
+          recommendationList = findNearestMultiSeedSongs(
+            orderedData,
+            seedSongIds,
+            Math.min(200, csvData.length),
             selectedFeatureGroups,
-            playlistLength
-          );
+            { combinationMethod: 'rank', finalCount: playlistLength }
+          )
+          .map(([id, score]) => ({
+            ...songDataMap[id],
+            similarityScore: score / 100
+          }));
+          
+          if (recommendationList.length === 0) {
+            // Second fallback
+            recommendationList = getMultiSeedSimilarSongs(
+              allSongs,
+              seedSongs,
+              selectedFeatureGroups,
+              playlistLength,
+              { combinationMethod }
+            );
+          }
         }
       }
       
@@ -407,7 +510,7 @@ export const RecommendationDisplay = () => {
 
   const resetProcess = () => {
     setRecommendations([]);
-    setSeedSong('');
+    setSeedSongs([]);
     setPlaylistCreated(false);
     setError(null);
     setView('songSelector');
@@ -461,38 +564,50 @@ export const RecommendationDisplay = () => {
           </div>
         )}
         
-        {/* Step 3: Select Seed Song */}
+        {/* Step 3: Select Seed Songs */}
         {csvData && view === 'songSelector' && (
           <div className="mt-12">
             <h3 className="text-xl font-bold mb-4 flex items-center">
               <Music className="mr-2" />
-              Step 3: Select a Seed Song
+              Step 3: Select Seed Songs
             </h3>
           
             <div className="space-y-4">
+              {/* Display selected seed songs */}
+              {seedSongs.length > 0 && (
+                <div className="mb-4">
+                  <label className="block mb-2 font-medium">Selected Seed Songs:</label>
+                  <div className="space-y-2">
+                    {seedSongs.map((song, index) => (
+                      <SeedSongItem 
+                        key={index} 
+                        song={song} 
+                        onRemove={() => removeSeedSong(index)} 
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="relative">
                 <InputField
-                  label="Search for a song by title or artist"
+                  label="Search for songs to add as seeds"
                   placeholder="Enter song title or artist name"
-                  value={seedSong ? (songDataMap[seedSong]?.Title || '') : searchInput}
+                  value={searchInput}
                   onChange={(e) => {
                     const inputValue = e.target.value;
                     setSearchInput(inputValue);
-                    if (seedSong) setSeedSong(''); // Clear selected song when typing
                     handleSeedSongSearch(inputValue);
                   }}
                 />
                 
                 {searchResults.length > 0 && (
                   <div className="absolute z-10 w-full mt-1 bg-white shadow-lg rounded-md border border-gray-200">
-                    {searchResults.map(song => (
+                    {searchResults.map((song, index) => (
                       <div 
-                        key={song.id} 
+                        key={index} 
                         className="p-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => {
-                          selectSeedSong(song);
-                          setSearchInput(''); // Clear search input when a song is selected
-                        }}
+                        onClick={() => addSeedSong(song)}
                       >
                         <div className="font-medium">{song.Title || 'Unknown Title'}</div>
                         <div className="text-sm text-gray-600">{song.Artist || 'Unknown Artist'}</div>
@@ -501,6 +616,29 @@ export const RecommendationDisplay = () => {
                   </div>
                 )}
               </div>
+              
+              {/* Multi-seed-specific settings */}
+              {seedSongs.length > 1 && (
+                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <label className="block mb-2 font-medium">How to combine similarity scores:</label>
+                  <select 
+                    value={combinationMethod}
+                    onChange={handleCombinationMethodChange}
+                    className="w-full p-2 border border-gray-300 rounded"
+                  >
+                    {combinationMethodOptions.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="mt-2 text-xs text-gray-600">
+                    <p><strong>Average:</strong> Balanced approach that finds songs with good overall similarity to all seeds.</p>
+                    <p><strong>Minimum:</strong> Conservative approach that ensures songs are reasonably similar to every seed.</p>
+                    <p><strong>Geometric:</strong> Progressive approach that favors consistent similarity across all seeds.</p>
+                  </div>
+                </div>
+              )}
               
               <div>
                 <label className="block mb-2 font-medium">Select Feature Groups (Keep All Unchecked to Weigh All Features Evenly)</label>
@@ -569,7 +707,7 @@ export const RecommendationDisplay = () => {
                         className="mr-2"
                       />
                       <label htmlFor="artistPriority" className="text-sm font-medium">
-                        Prioritize songs by the same artist
+                        Prioritize songs by the same artists
                       </label>
                     </div>
                     
@@ -592,12 +730,12 @@ export const RecommendationDisplay = () => {
                         
                         <div className="mb-2">
                           <label className="block text-xs text-gray-600 mb-1">
-                            Maximum songs from same artist: {maxSameArtist}
+                            Maximum songs from same artists: {maxSameArtist}
                           </label>
                           <input
                             type="range"
                             min="1"
-                            max="5"
+                            max="10"
                             step="1"
                             value={maxSameArtist}
                             onChange={(e) => setMaxSameArtist(Number(e.target.value))}
@@ -615,7 +753,7 @@ export const RecommendationDisplay = () => {
               )}              
               <ActionButton
                 onClick={handleGenerateRecommendations}
-                disabled={loading || !seedSong}
+                disabled={loading || seedSongs.length === 0}
                 className="w-5/6 mx-auto flex items-center justify-center text-center"
               >
                 {loading ? (
@@ -644,9 +782,26 @@ export const RecommendationDisplay = () => {
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-xl font-bold">Recommended Songs</h3>
             <div className="text-sm">
-              Based on: {songDataMap[seedSong]?.Title || 'Selected Song'} by {songDataMap[seedSong]?.Artist || 'Unknown'}
+              {seedSongs.length === 1 ? (
+                <span>Based on: {seedSongs[0]?.Title || 'Selected Song'} by {seedSongs[0]?.Artist || 'Unknown'}</span>
+              ) : (
+                <span>Based on {seedSongs.length} selected songs</span>
+              )}
             </div>
           </div>
+
+          {seedSongs.length > 1 && (
+            <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <h4 className="text-sm font-medium mb-1">Seed Songs:</h4>
+              <div className="flex flex-wrap gap-2">
+                {seedSongs.map((song, index) => (
+                  <div key={index} className="text-xs bg-white px-2 py-1 rounded border border-blue-200">
+                    {song.Title || 'Unknown'} - {song.Artist || 'Unknown Artist'}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {recommendations.map((song, index) => (
@@ -663,7 +818,12 @@ export const RecommendationDisplay = () => {
                       <Disc size={48} className="text-gray-500" />
                     </div>
                   )}
-                  {song.Artist && seedSong && songDataMap[seedSong]?.Artist === song.Artist && (
+                  
+                  {/* Show same artist badge for multi-seed */}
+                  {artistPriority && seedSongs.some(seedSong => 
+                    seedSong.Artist && song.Artist && 
+                    seedSong.Artist.toLowerCase() === song.Artist.toLowerCase()
+                  ) && (
                     <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
                       Same Artist
                     </div>
@@ -673,6 +833,8 @@ export const RecommendationDisplay = () => {
                   <h4 className="font-bold truncate">{song.Title || `Track ${song.id}`}</h4>
                   <p className="text-sm text-gray-600 truncate">{song.Artist || 'Unknown artist'}</p>
                   <p className="text-xs text-gray-500 truncate">{song.Album || 'Unknown album'}</p>
+                  
+                  {/* Overall similarity score */}
                   {typeof song.similarityScore !== 'undefined' && (
                     <div className="mt-1 flex items-center">
                       <div className="h-2 w-16 bg-gray-200 rounded-full overflow-hidden">
@@ -686,6 +848,34 @@ export const RecommendationDisplay = () => {
                       </span>
                     </div>
                   )}
+                  
+                  {/* Individual scores for multi-seed */}
+                  {seedSongs.length > 1 && song.individualScores && (
+                    <div className="mt-1 pt-1 border-t border-gray-100">
+                      <details className="text-xs">
+                        <summary className="text-blue-600 cursor-pointer">Show individual matches</summary>
+                        <div className="mt-1 space-y-1 pl-1">
+                          {Object.entries(song.individualScores).map(([seedId, score], idx) => {
+                            const seedSong = seedSongs.find(s => (s.id || s.track_id) === seedId);
+                            return (
+                              <div key={idx} className="flex items-center">
+                                <div className="h-1.5 w-10 bg-gray-200 rounded-full overflow-hidden mr-1">
+                                  <div
+                                    className="h-full bg-blue-400"
+                                    style={{ width: `${Math.min(score * 100, 100)}%` }}
+                                  ></div>
+                                </div>
+                                <span className="truncate">
+                                  {Math.round(score * 100)}% - {seedSong?.Title || 'Unknown'}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </details>
+                    </div>
+                  )}
+                  
                   {song.externalUrl && (
                     <a 
                       href={song.externalUrl} 
@@ -711,7 +901,7 @@ export const RecommendationDisplay = () => {
               className="px-4 py-2 flex items-center"
             >
               <Search className="mr-2" size={18} />
-              Try Another Song
+              Try Different Songs
             </ActionButton>
             <ActionButton 
               onClick={startOver}
@@ -738,10 +928,10 @@ export const RecommendationDisplay = () => {
                 <h4 className="font-bold text-lg mb-2">Success!</h4>
                 <p>Your playlist "{playlistName}" has been created and saved to your Spotify account.</p>
                 <div className="mt-4 flex flex-wrap gap-3">
-                  <ActionButton className="ml-2" sonClick={() => {
+                  <ActionButton onClick={() => {
                     // Reset just the playlist creation state but keep the CSV data
                     setRecommendations([]);
-                    setSeedSong('');
+                    setSeedSongs([]);
                     setPlaylistCreated(false);
                     setError(null);
                     setView('songSelector');
