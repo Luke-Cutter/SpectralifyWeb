@@ -1,8 +1,9 @@
-// src/pages/GetStartedPage.jsx
+// src/pages/PlaylistPage.jsx
+import React from 'react';
 import { ContentBox } from '../components/common/ContentBox';
 import { RecommendationDisplay } from '../components/RecommendationDisplay';
 
-export const GetStartedPage = () => {
+export const PlaylistPage = () => {
   return (
     <div>
       <section className="bg-[#FFE3E3] p-4 sm:p-6 md:p-8 border-x-4 border-b-4 border-black">

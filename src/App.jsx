@@ -5,9 +5,9 @@ import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 import { HomePage } from './pages/HomePage';
 import { AudioPage } from './pages/AudioPage';
-import { GetStartedPage } from './pages/GetStartedPage';
-import { LearnMorePage } from './pages/LearnMorePage';
 import { GuidePage } from './pages/GuidePage';
+import { LearnMorePage } from './pages/LearnMorePage';
+import { PlaylistPage } from './pages/PlaylistPage';
 
 const App = () => {
   // Error check for component loading
@@ -22,7 +22,7 @@ const App = () => {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/spectralify-audio" element={<AudioPage />} />
-          <Route path="/build-playlist" element={<GetStartedPage />} />
+          <Route path="/build-playlist" element={<PlaylistPage />} />
           <Route path="/meet-team" element={<LearnMorePage />} />
           <Route path="/feature-guide" element={<GuidePage />} />
           {/* Redirect to home if no route matches */}

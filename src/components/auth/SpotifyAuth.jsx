@@ -17,7 +17,7 @@ export const SpotifyAuth = ({ onAuthComplete, onDisconnect }) => {
   const isProduction = window.location.hostname.includes('github.io');
   const redirectUri = isProduction 
     ? `https://luke-cutter.github.io/SpectralifyWeb/build-playlist`
-    : 'http://localhost:3000/SpectralifyWeb/build-playlist';
+    : `http://localhost:3000/SpectralifyWeb/build-playlist`;
 
   useEffect(() => {
     // Check if we're in an OAuth callback
@@ -133,9 +133,12 @@ export const SpotifyAuth = ({ onAuthComplete, onDisconnect }) => {
       setIsProcessing(true);
       setError(null);
       
+      console.log('Starting token exchange process');
+      
       const codeVerifier = localStorage.getItem('spotify_code_verifier');
       
       if (!codeVerifier) {
+        console.error('Code verifier not found in localStorage');
         throw new Error('Code verifier not found');
       }
       
@@ -153,8 +156,11 @@ export const SpotifyAuth = ({ onAuthComplete, onDisconnect }) => {
         }),
       });
       
+      console.log('Token response status:', response.status);
+      
       if (!response.ok) {
         const errorText = await response.text();
+        console.error('Token exchange error:', errorText);
         try {
           const errorJson = JSON.parse(errorText);
           throw new Error(`Token exchange failed: ${errorJson.error || 'Unknown error'}`);
@@ -198,7 +204,7 @@ export const SpotifyAuth = ({ onAuthComplete, onDisconnect }) => {
     }
   };
 
-  // Refresh access token
+  // Refresh access token - add this function to your SpotifyAuth component
   const refreshAccessToken = async (refreshToken) => {
     try {
       setIsProcessing(true);
@@ -281,7 +287,8 @@ export const SpotifyAuth = ({ onAuthComplete, onDisconnect }) => {
         'playlist-modify-private',
         'playlist-modify-public',
         'user-read-email',
-        'user-read-private'
+        'user-read-private',
+        'user-top-read'
       ];
       
       // Build the authorization URL
