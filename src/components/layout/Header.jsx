@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { NavButton } from '../common/NavButton';
+// Header.js
+import React from 'react';
+import { useState } from 'react';
+import { NavLink } from 'react-router-dom';
 
-export const Header = ({ activePage, setActivePage }) => {
+export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   return (
@@ -36,18 +38,60 @@ export const Header = ({ activePage, setActivePage }) => {
       </div>
 
       {/* Navigation Menu */}
-      <div className={`flex flex-col mt-4 lg:flex-row justify-center px-4 lg:px-8 gap-4 lg:gap-8 max-w-6xl mx-auto ${!isMenuOpen && 'hidden lg:flex'}`}>
-        {['Home', 'Build A Playlist', 'Spectralify Audio', 'Meet the Team'].map(page => (
-          <NavButton
-            key={page}
-            text={page}
-            isActive={activePage === page.toLowerCase()}
-            onClick={() => {
-              setActivePage(page.toLowerCase());
-              setIsMenuOpen(false);
-            }}
-          />
-        ))}
+      <div className={`flex text-center flex-col mt-4 lg:flex-row justify-center px-4 lg:px-8 gap-4 lg:gap-8 max-w-6xl mx-auto ${!isMenuOpen && 'hidden lg:flex'}`}>
+      <NavLink 
+        to="/" 
+        className={({ isActive }) => `
+          px-4 py-3 sm:px-6 md:px-10 md:py-7 rounded-xl border-4 border-black
+          text-lg sm:text-xl md:text-2xl font-bold mb-7
+          transition-colors duration-200 w-full shadow-button
+          flex items-center justify-center
+          ${isActive ? 'bg-spectralify-cyan' : 'bg-spectralify-yellow'}
+          hover:brightness-110
+          md:min-w-[210px]
+        `}
+      >
+        Home
+      </NavLink>
+        <NavLink 
+          to="/build-playlist" 
+          className={({ isActive }) => `
+            px-4 py-3 sm:px-6 md:px-10 md:py-7 rounded-xl border-4 border-black
+            text-lg sm:text-xl md:text-2xl font-bold mb-7
+            transition-colors duration-200 w-full shadow-button
+            ${isActive ? 'bg-spectralify-cyan' : 'bg-spectralify-yellow'}
+            hover:brightness-110
+            md:min-w-[210px]
+          `}
+        >
+          Build A Playlist
+        </NavLink>
+        <NavLink 
+          to="/spectralify-audio" 
+          className={({ isActive }) => `
+            px-4 py-3 sm:px-6 md:px-10 md:py-7 rounded-xl border-4 border-black
+            text-lg sm:text-xl md:text-2xl font-bold mb-7
+            transition-colors duration-200 w-full shadow-button
+            ${isActive ? 'bg-spectralify-cyan' : 'bg-spectralify-yellow'}
+            hover:brightness-110
+            md:min-w-[210px]
+          `}
+        >
+          Spectralify Audio
+        </NavLink>
+        <NavLink 
+          to="/meet-team" 
+          className={({ isActive }) => `
+            px-4 py-3 sm:px-6 md:px-10 md:py-7 rounded-xl border-4 border-black
+            text-lg sm:text-xl md:text-2xl font-bold mb-7
+            transition-colors duration-200 w-full shadow-button
+            ${isActive ? 'bg-spectralify-cyan' : 'bg-spectralify-yellow'}
+            hover:brightness-110
+            md:min-w-[210px]
+          `}
+        >
+          Meet the Team
+        </NavLink>
       </div>
       
       <div className="absolute bottom-0 left-0 right-0 h-4 bg-black" />

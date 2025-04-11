@@ -1,5 +1,6 @@
 // src/pages/HomePage.jsx
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { ContentBox } from '../components/common/ContentBox';
 import { ActionButton } from '../components/common/ActionButton';
 
@@ -41,20 +42,19 @@ export const HomePage = ({ setActivePage }) => (
 
       <div className="flex items-center justify-center gap-6">
         <div className="w-16 mt-8 h-0.5 bg-black" />
-        <ActionButton 
-          onClick={() => {
-            // Set the active page
-            setActivePage('build a playlist');
-            
-            // Scroll to the top of the page smoothly
-            window.scrollTo({
-              top: 150,
-              behavior: 'smooth'
-            });
-          }}
-        >
-          Build a Playlist!
-        </ActionButton>
+        <Link to="/build-playlist">
+          <ActionButton 
+            onClick={() => {
+              // Scroll to the top of the page smoothly
+              window.scrollTo({
+                top: 150,
+                behavior: 'smooth'
+              });
+            }}
+          >
+            Build a Playlist!
+          </ActionButton>
+        </Link>
         <div className="w-16 mt-8 h-0.5 bg-black" />
       </div>
     </section>

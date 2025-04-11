@@ -1,14 +1,13 @@
+// Footer.js with scrolling behavior
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { ContentBox } from '../common/ContentBox';
 import { SocialLinks } from '../social/SocialLinks';
 
-export const Footer = ({ setActivePage }) => {
-  // Function to handle navigation and scroll to top
-  const handleNavigation = (page) => {
-    // Set the active page first
-    setActivePage(page);
-    
-    // Then scroll to the top of the page smoothly
+export const Footer = () => {
+  // Function to handle scrolling
+  const handleLinkClick = () => {
+    // Scroll to the top of the page smoothly
     window.scrollTo({
       top: 150,
       behavior: 'smooth'
@@ -21,15 +20,21 @@ export const Footer = ({ setActivePage }) => {
         <ContentBox>
           <h3 className="font-bold text-base mb-2">Quick Links & Extras</h3>
           <div className="flex flex-col gap-1">
-            {['Home', 'Build A Playlist', 'Spectralify Audio', 'Meet the Team', 'Spectralify Feature Guide'].map(link => (
-              <button 
-                key={link}
-                onClick={() => handleNavigation(link.toLowerCase())}
-                className="text-sm text-left hover:underline"
-              >
-                {link}
-              </button>
-            ))}
+            <Link to="/" onClick={handleLinkClick} className="text-sm text-left hover:underline">
+              Home
+            </Link>
+            <Link to="/build-playlist" onClick={handleLinkClick} className="text-sm text-left hover:underline">
+              Build A Playlist
+            </Link>
+            <Link to="/spectralify-audio" onClick={handleLinkClick} className="text-sm text-left hover:underline">
+              Spectralify Audio
+            </Link>
+            <Link to="/meet-team" onClick={handleLinkClick} className="text-sm text-left hover:underline">
+              Meet the Team
+            </Link>
+            <Link to="/feature-guide" onClick={handleLinkClick} className="text-sm text-left hover:underline">
+              Spectralify Feature Guide
+            </Link>
           </div>
         </ContentBox>
 
@@ -50,7 +55,7 @@ export const Footer = ({ setActivePage }) => {
               <SocialLinks name="Luke Cutter" github="Luke-Cutter" linkedin="lukecutter" />
               <SocialLinks name="Cole Heigis" github="Cole-Heigis" linkedin="cole-heigis" />
             </div>
-            <p className="text-sm text-gray-600 mt-4">
+            <p className="text-sm text-center text-gray-600 mt-4">
               Join our community and help shape the future of music discovery
             </p>
           </div>

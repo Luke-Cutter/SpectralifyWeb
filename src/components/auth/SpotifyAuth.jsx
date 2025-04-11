@@ -16,8 +16,8 @@ export const SpotifyAuth = ({ onAuthComplete, onDisconnect }) => {
   // Redirect URIs based on environment
   const isProduction = window.location.hostname.includes('github.io');
   const redirectUri = isProduction 
-    ? `https://luke-cutter.github.io/SpectralifyWeb`
-    : 'http://localhost:3000/SpectralifyWeb';
+    ? `https://luke-cutter.github.io/SpectralifyWeb/build-playlist`
+    : 'http://localhost:3000/SpectralifyWeb/build-playlist';
 
   useEffect(() => {
     // Check if we're in an OAuth callback
