@@ -4,19 +4,13 @@
   <meta charset="utf-8">
   <title>Redirecting...</title>
   <script>
-    (function(l) {
-      if (l.search[1] === '/' ) {
-        var decoded = l.search.slice(1).split('&').map(function(s) { 
-          return s.replace(/~and~/g, '&')
-        }).join('?');
-        window.history.replaceState(null, null,
-            l.pathname.slice(0, -1) + decoded + l.hash
-        );
-      }
-    }(window.location))
+    // Redirect to main page while preserving query parameters
+    const segments = window.location.pathname.split('/');
+    const basePath = segments.slice(0, segments.indexOf('SpectralifyWeb') + 1).join('/');
+    window.location.replace(basePath + '/?' + window.location.search.slice(1) + window.location.hash);
   </script>
 </head>
 <body>
-  Redirecting...
+  <p>Redirecting to application...</p>
 </body>
 </html>
