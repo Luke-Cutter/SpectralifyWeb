@@ -10,8 +10,8 @@ export const SpotifyAuth = ({ onAuthComplete, onDisconnect }) => {
   const [tokenInfo, setTokenInfo] = useState(null);
   const [error, setError] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  
-  // Use React Router hooks for navigation
+
+  // Use React Router hooks
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -22,7 +22,7 @@ export const SpotifyAuth = ({ onAuthComplete, onDisconnect }) => {
   const isProduction = window.location.hostname.includes('github.io');
   const redirectUri = isProduction 
     ? `https://luke-cutter.github.io/SpectralifyWeb/build-playlist`
-    : `${window.location.origin}/SpectralifyWeb/build-playlist`;
+    : `http://localhost:3000/SpectralifyWeb/build-playlist`;
 
   useEffect(() => {
     // Check if we're in an OAuth callback
@@ -33,6 +33,8 @@ export const SpotifyAuth = ({ onAuthComplete, onDisconnect }) => {
       const state = urlParams.get('state');
       
       if (code) {
+        console.log('Auth code detected in URL');
+        
         // Verify state parameter to prevent CSRF attacks
         const storedState = localStorage.getItem('spotify_auth_state');
         if (state && storedState && state !== storedState) {
@@ -45,11 +47,10 @@ export const SpotifyAuth = ({ onAuthComplete, onDisconnect }) => {
         // Exchange code for access token
         exchangeCodeForToken(code);
         
-        // Clean URL by navigating instead of using replaceState
+        // Clean URL using React Router's navigate instead of window.history.replaceState
         navigate('/build-playlist', { replace: true });
       } else if (error) {
         setError(`Authorization error: ${error}`);
-        // Clean URL by navigating instead of using replaceState
         navigate('/build-playlist', { replace: true });
         checkForCachedToken();
       } else {
@@ -69,7 +70,7 @@ export const SpotifyAuth = ({ onAuthComplete, onDisconnect }) => {
     
     return () => clearInterval(refreshInterval);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location]); // Added location dependency to re-run when URL changes
+  }, [location.search]); // Update dependency to location.search to detect URL changes
 
   // Generate a random string for the code verifier
   const generateRandomString = (length) => {
@@ -141,6 +142,7 @@ export const SpotifyAuth = ({ onAuthComplete, onDisconnect }) => {
       setError(null);
       
       console.log('Starting token exchange process');
+      console.log('Using redirect URI:', redirectUri);
       
       const codeVerifier = localStorage.getItem('spotify_code_verifier');
       
@@ -276,6 +278,9 @@ export const SpotifyAuth = ({ onAuthComplete, onDisconnect }) => {
     try {
       setError(null);
       
+      console.log('Initiating Spotify auth flow');
+      console.log('Using redirect URI:', redirectUri);
+      
       // Generate and store a code verifier
       const codeVerifier = generateRandomString(64);
       localStorage.setItem('spotify_code_verifier', codeVerifier);
@@ -298,9 +303,6 @@ export const SpotifyAuth = ({ onAuthComplete, onDisconnect }) => {
         'user-top-read'
       ];
       
-      // Save current location to return to after auth
-      localStorage.setItem('spotify_auth_return_path', location.pathname);
-      
       // Build the authorization URL
       const authUrl = new URL('https://accounts.spotify.com/authorize');
       
@@ -316,6 +318,7 @@ export const SpotifyAuth = ({ onAuthComplete, onDisconnect }) => {
       
       authUrl.search = new URLSearchParams(params).toString();
       
+      console.log('Redirecting to:', authUrl.toString());
       // Redirect to Spotify auth page
       window.location.href = authUrl.toString();
     } catch (err) {

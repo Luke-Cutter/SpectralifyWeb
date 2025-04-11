@@ -1,4 +1,4 @@
-// App.js - Fixed routing configuration
+// App.js (modified to remove duplicate Router)
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Header } from './components/layout/Header';
@@ -25,9 +25,6 @@ const App = () => {
           <Route path="/build-playlist" element={<PlaylistPage />} />
           <Route path="/meet-team" element={<LearnMorePage />} />
           <Route path="/feature-guide" element={<GuidePage />} />
-          {/* Handle Spotify Auth Callback */}
-          <Route path="/build-playlist/" element={<PlaylistPage />} />
-          <Route path="/SpectralifyWeb/build-playlist" element={<PlaylistPage />} />
           {/* Redirect to home if no route matches */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
