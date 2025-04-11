@@ -89,7 +89,7 @@ Want to analyze your own music collection? Check out [Spectralify Audio](https:/
 ## Important Notes
 
 - Only use song data from songs that you physically own or have license to
-- For optimal experience, request verification after connecting your Spotify account
+- For optimal experience, request verification before connecting your Spotify account
 - The more music you analyze with Spectralify Audio, the more personalized your recommendations will be
 
 ## Team
