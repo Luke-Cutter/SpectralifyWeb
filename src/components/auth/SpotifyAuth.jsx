@@ -1,5 +1,6 @@
 // src/components/auth/SpotifyAuth.jsx
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ContentBox } from '../common/ContentBox';
 import { ActionButton } from '../common/ActionButton';
 import { CheckCircle, AlertCircle } from 'lucide-react';
@@ -9,6 +10,10 @@ export const SpotifyAuth = ({ onAuthComplete, onDisconnect }) => {
   const [tokenInfo, setTokenInfo] = useState(null);
   const [error, setError] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Use React Router hooks for navigation
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Client ID from the Spotify Dashboard
   const spotifyClientId = '4b8fd01dc4004343b120d56b36876835';
@@ -17,7 +22,7 @@ export const SpotifyAuth = ({ onAuthComplete, onDisconnect }) => {
   const isProduction = window.location.hostname.includes('github.io');
   const redirectUri = isProduction 
     ? `https://luke-cutter.github.io/SpectralifyWeb/build-playlist`
-    : `http://localhost:3000/SpectralifyWeb/build-playlist`;
+    : `${window.location.origin}/SpectralifyWeb/build-playlist`;
 
   useEffect(() => {
     // Check if we're in an OAuth callback
@@ -26,9 +31,6 @@ export const SpotifyAuth = ({ onAuthComplete, onDisconnect }) => {
       const code = urlParams.get('code');
       const error = urlParams.get('error');
       const state = urlParams.get('state');
-      
-      // Clean URL by removing query parameters
-      window.history.replaceState({}, document.title, window.location.pathname);
       
       if (code) {
         // Verify state parameter to prevent CSRF attacks
@@ -42,8 +44,13 @@ export const SpotifyAuth = ({ onAuthComplete, onDisconnect }) => {
         
         // Exchange code for access token
         exchangeCodeForToken(code);
+        
+        // Clean URL by navigating instead of using replaceState
+        navigate('/build-playlist', { replace: true });
       } else if (error) {
         setError(`Authorization error: ${error}`);
+        // Clean URL by navigating instead of using replaceState
+        navigate('/build-playlist', { replace: true });
         checkForCachedToken();
       } else {
         // No code or error in URL, check for cached token
@@ -62,7 +69,7 @@ export const SpotifyAuth = ({ onAuthComplete, onDisconnect }) => {
     
     return () => clearInterval(refreshInterval);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [location]); // Added location dependency to re-run when URL changes
 
   // Generate a random string for the code verifier
   const generateRandomString = (length) => {
@@ -204,7 +211,7 @@ export const SpotifyAuth = ({ onAuthComplete, onDisconnect }) => {
     }
   };
 
-  // Refresh access token - add this function to your SpotifyAuth component
+  // Refresh access token
   const refreshAccessToken = async (refreshToken) => {
     try {
       setIsProcessing(true);
@@ -290,6 +297,9 @@ export const SpotifyAuth = ({ onAuthComplete, onDisconnect }) => {
         'user-read-private',
         'user-top-read'
       ];
+      
+      // Save current location to return to after auth
+      localStorage.setItem('spotify_auth_return_path', location.pathname);
       
       // Build the authorization URL
       const authUrl = new URL('https://accounts.spotify.com/authorize');
