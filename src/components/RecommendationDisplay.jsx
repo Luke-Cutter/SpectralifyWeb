@@ -916,19 +916,47 @@ export const RecommendationDisplay = () => {
           </div>
           
           <div className="px-4 py-2 mt-6 flex flex-wrap gap-4">
-            <ActionButton onClick={() => setView('playlistCreator')}>
-              <Save className="mr-2" size={18} />
-              Save Playlist
-            </ActionButton>
+          <ActionButton 
+            onClick={() => {
+              // Scroll to the top of the page smoothly
+              window.scrollTo({
+                top: 1900,
+                behavior: 'smooth'
+              });
+              // Call the setView function
+              setView('playlistCreator');
+            }}
+            className="px-4 py-2 flex items-center"
+          >
+            <Save className="mr-2" size={18} />
+            Save Playlist
+          </ActionButton>
+
+          <ActionButton 
+            onClick={() => {
+              // Scroll to the top of the page smoothly
+              window.scrollTo({
+                top: 1900,
+                behavior: 'smooth'
+              });
+              // Call the resetProcess function
+              resetProcess();
+            }}
+            className="px-4 py-2 flex items-center"
+          >
+            <Search className="mr-2" size={18} />
+            Try Different Songs
+          </ActionButton>
             <ActionButton 
-              onClick={resetProcess}
-              className="px-4 py-2 flex items-center"
-            >
-              <Search className="mr-2" size={18} />
-              Try Different Songs
-            </ActionButton>
-            <ActionButton 
-              onClick={startOver}
+              onClick={() => {
+                // Scroll to the top of the page smoothly
+                window.scrollTo({
+                  top: 1300,
+                  behavior: 'smooth'
+                });
+                // Call the startOver function
+                startOver();
+              }}
               className="px-4 py-2 flex items-center"
             >
               <FileSpreadsheet className="mr-2" size={18} />
