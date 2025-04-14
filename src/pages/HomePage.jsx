@@ -11,12 +11,12 @@ export const HomePage = ({ setActivePage }) => (
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mb-8">
         <ContentBox>
-          <img className="w-full h-auto" alt="Measure of Track Durations and Tempo Distribution Graph" src="/SpectralifyWeb/images/temporal_analysis.png"></img>
-          <p className= "text-center mt-10 font-bold">Measure of Track Durations and Tempo Distribution</p>
+          <img className="w-full h-auto" alt="Emotional Landscape of 5 Sample Playlists" src="/SpectralifyWeb/images/EmotionalLandscape.png"></img>
+          <p className= "text-center mt-5 font-bold">Emotional Landscape of 5 Sample Playlists</p>
         </ContentBox>
         <ContentBox>
-          <img className="w-full h-auto" alt="Correlation Of Musical Features in an Album Heatmap" src="/SpectralifyWeb/images/correlation_heatmap.png"></img>
-          <p className= "text-center font-bold">Correlation Of Musical Features in an Album</p>
+          <img className="w-full h-auto" alt="Instrument Presence In 5 Sample Playlists" src="/SpectralifyWeb/images/InstrumentPresence.png"></img>
+          <p className= "text-center font-bold">Instrument Presence In 5 Sample Playlists</p>
         </ContentBox>
       </div>
 

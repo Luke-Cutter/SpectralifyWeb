@@ -11,16 +11,16 @@ export const AudioPage = ({ setActivePage }) => (
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 mb-8">
         <ContentBox>
-          <img className="w-full h-auto" alt="Rhythm Analysis Graph" src="/SpectralifyWeb/images/rhythm_analysis.png"></img>
-          <p className= "text-center font-bold">Tempo, Beat Characteristics, & Groove Analysis Distribution</p>
+          <img className="w-full h-auto" alt="Hierarchical Clustering of Audio Features" src="/SpectralifyWeb/images/AudioClustering.png"></img>
+          <p className= "text-center mt-10 font-bold">Hierarchical Clustering of Audio Features Across 5 Sample Playlists</p>
         </ContentBox>
         <ContentBox>
-          <img className="w-full h-auto" alt="Spectral Energy Graph" src="/SpectralifyWeb/images/spectral_analysis.png"></img>
-          <p className= "text-center font-bold">RMS Energy and Spectral Centroid Distribution</p>
+          <img className="w-full h-auto" alt="Average Energy Metrics of 5 Sample Playlists" src="/SpectralifyWeb/images/EnergyMetrics.png"></img>
+          <p className= "text-center mt-5 font-bold">Average Energy Metrics of 5 Sample Playlists</p>
         </ContentBox>
         <ContentBox>
-          <img className="w-full h-auto" alt="Harmonic vs Percussive Energy Graph" src="/SpectralifyWeb/images/energy_analysis.png"></img>
-          <p className= "text-center mt-10 font-bold">Harmonic vs Percussive Energy Distribution</p>
+          <img className="w-full h-auto" alt="Energy Profiles Across 5 Sample Playlists" src="/SpectralifyWeb/images/EnergyProfile.png"></img>
+          <p className= "text-center font-bold">Energy Profiles Across 5 Sample Playlists</p>
         </ContentBox>
       </div>
 
