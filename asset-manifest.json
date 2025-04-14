@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/SpectralifyWeb/static/css/main.1d589bbb.css",
-    "main.js": "/SpectralifyWeb/static/js/main.02f3d0a9.js",
+    "main.js": "/SpectralifyWeb/static/js/main.e210519e.js",
     "index.html": "/SpectralifyWeb/index.html",
     "main.1d589bbb.css.map": "/SpectralifyWeb/static/css/main.1d589bbb.css.map",
-    "main.02f3d0a9.js.map": "/SpectralifyWeb/static/js/main.02f3d0a9.js.map"
+    "main.e210519e.js.map": "/SpectralifyWeb/static/js/main.e210519e.js.map"
   },
   "entrypoints": [
     "static/css/main.1d589bbb.css",
-    "static/js/main.02f3d0a9.js"
+    "static/js/main.e210519e.js"
   ]
 }
