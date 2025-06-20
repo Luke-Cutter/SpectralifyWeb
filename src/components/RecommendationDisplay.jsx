@@ -580,7 +580,7 @@ export const RecommendationDisplay = () => {
             </p>
             <div className="mb-8 text-center">
               <ActionButton 
-                onClick={() => window.open('https://drive.google.com/file/d/1QyF07tg8YXxZJuFtY9u0z8F-HUoXHEVy/view?usp=sharing', '_blank')}
+                onClick={() => window.open('https://drive.google.com/file/d/143PB6lJ-EcwG4pRBnjJ3Z1TGDbLE8SVQ/view?usp=sharing', '_blank')}
               >
                 Use Our Pre-made CSV!
               </ActionButton>
